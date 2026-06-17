@@ -221,11 +221,17 @@ VITE_API_SUCCESS_CODE=200
 | 代码更新 | Push 到 GitHub → Railway 自动重新部署 |
 | 仅改后端环境变量 | 后端 Service → Redeploy |
 | 仅改前端 API 地址 | 修改 `VITE_API_BASE_URL` → 前端 Service **Redeploy**（需重新构建） |
-| 数据库结构变更 | 本地 `railway run npm run db:init` 或手动执行 SQL |
+| 数据库结构变更 | 重新部署后端（自动补全）或见 [DEPLOY-PITFALLS.md](./docs/DEPLOY-PITFALLS.md) 手动 `db:init` |
 
 ---
 
 ## 八、常见问题
+
+> 完整易错清单（含 `sys_user` 不存在、`railway up` 失败、变量配错等）：**[docs/DEPLOY-PITFALLS.md](./docs/DEPLOY-PITFALLS.md)**
+
+### 登录报 `Table 'railway.sys_user' doesn't exist`
+
+MySQL 插件只提供空库，不会自动建表。见 [DEPLOY-PITFALLS.md §三](./docs/DEPLOY-PITFALLS.md#三数据库未初始化)。
 
 ### 后端启动失败：MySQL 连接错误
 
@@ -294,10 +300,10 @@ npm run server:db:init   # 初始化表 + 种子数据
 # 生产构建
 npm run build            # 输出 dist/
 
-# Railway 远程初始化 DB
-cd server && railway run npm run db:init
+# Railway 远程初始化 DB（勿用 railway run，见 DEPLOY-PITFALLS.md）
+# git push 部署后端自动建表，或 railway ssh 后 npm run db:init
 ```
 
 ---
 
-如有问题，请先查阅 [docs/DEPLOY-RAILWAY.md](./docs/DEPLOY-RAILWAY.md) 中的详细排错章节。
+如有问题，请先查阅 **[docs/DEPLOY-PITFALLS.md](./docs/DEPLOY-PITFALLS.md)**（易错清单），再看 [docs/DEPLOY-RAILWAY.md](./docs/DEPLOY-RAILWAY.md) 步骤说明。

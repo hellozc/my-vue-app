@@ -207,6 +207,6 @@ npm run preview
 - [ ] 后端 Service Root Directory = `server`
 - [ ] 后端 DB 环境变量已配置
 - [ ] 后端 `/health` 可访问
-- [ ] 已执行 `db:init`
+- [ ] 已执行数据库初始化（Deploy Logs 或手动 `db:init`）
 - [ ] 前端 `VITE_API_BASE_URL` 已指向后端
 - [ ] 前端域名可访问且登录成功
