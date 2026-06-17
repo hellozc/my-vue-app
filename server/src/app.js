@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { config } from './config/index.js'
 import { testConnection } from './db/pool.js'
+import { ensureDatabaseSchema } from './db/initSchema.js'
 import routes from './routes/index.js'
 
 const app = express()
@@ -37,6 +38,14 @@ async function start() {
   try {
     await testConnection()
     console.log(`[DB] MySQL 已连接 → ${config.db.host}:${config.db.port}/${config.db.database}`)
+
+    const autoInit = process.env.DB_AUTO_INIT !== 'false'
+    if (autoInit) {
+      const { initialized } = await ensureDatabaseSchema()
+      if (initialized) {
+        console.log('[DB] 启动时自动初始化已完成')
+      }
+    }
   } catch (err) {
     console.error('[DB] MySQL 连接失败:', err.message || err.code || String(err))
     if (err.code === 'ECONNREFUSED') {
