@@ -2,6 +2,8 @@
 
 无需购买云服务器 ECS，在 Railway 上托管 **MySQL + 后端 + 前端** 三个 Service。
 
+> **踩坑速查：** 登录报 `sys_user doesn't exist`、`railway up` 构建失败、变量配错等，见 [DEPLOY-PITFALLS.md](./DEPLOY-PITFALLS.md)。
+
 ## 架构
 
 ```
@@ -72,23 +74,32 @@ MySQL Service（Railway 插件）
 
 ### 初始化数据库（只需执行一次）
 
-**方式 A：Railway CLI（推荐）**
+**方式 A：部署后端自动建表（推荐）**
 
-```bash
+本仓库后端启动时会检测 `sys_user` 是否存在，不存在则自动执行初始化（见 `server/src/db/initSchema.js`）。  
+推送代码并部署成功后，在 **my-vue-app** Deploy Logs 中确认出现 `[DB] 默认管理员已导入 → admin / 123456`。
+
+**方式 B：MySQL 公网 + 本机执行**
+
+MySQL → **Public Network** 开启，复制 `MYSQL_PUBLIC_URL`：
+
+```powershell
 cd server
-railway link          # 选择 Project 和后端 Service
-railway run npm run db:init
+$env:DATABASE_URL = "粘贴 MYSQL_PUBLIC_URL"
+$env:DB_SSL = "true"
+Remove-Item Env:DB_HOST, Env:DB_USER, Env:DB_PASSWORD, Env:DB_NAME -ErrorAction SilentlyContinue
+npm run db:init
 ```
 
-**方式 B：本地临时连接**
-
-把 MySQL 的 **Public Network** 打开，用本地 `server/.env` 填 Railway MySQL 变量后：
+**方式 C：`railway ssh` 进后端容器**
 
 ```bash
-npm run server:db:init
+cd server && railway link   # 选择后端 Service
+railway ssh
+npm run db:init
 ```
 
-初始化完成后可关闭 MySQL 公网访问。
+> ⚠️ **`railway run npm run db:init` 在本机通常会失败**（无法解析 `mysql.railway.internal`）。详见 [DEPLOY-PITFALLS.md](./DEPLOY-PITFALLS.md)。
 
 默认账号：`admin / 123456`
 
@@ -136,28 +147,40 @@ npm run server:db:init
 
 ## 常见问题
 
-### 1. 后端启动报 MySQL 连接失败
+完整易错清单见 **[DEPLOY-PITFALLS.md](./DEPLOY-PITFALLS.md)**。
 
-- 检查 `DB_*` 变量是否引用正确
+### 1. 登录报 `Table 'railway.sys_user' doesn't exist`
+
+- MySQL 部署成功 ≠ 业务表已创建，需 `db:init` 或后端自动建表
+- 检查 **my-vue-app** Deploy Logs，不是 MySQL Deployments 页
+
+### 2. 后端启动报 MySQL 连接失败
+
+- 检查 `DB_*` 变量是否引用正确（`DB_USER` 不能误填成端口号 `3306`）
 - 确认 `DB_SSL=true`
-- 确认已执行 `db:init`
+- 确认已执行 `db:init` 或自动初始化日志已成功
 
-### 2. 前端能打开但接口 404 / CORS
+### 3. 前端能打开但接口 404 / CORS
 
 - 确认 `VITE_API_BASE_URL` 指向后端公网域名 + `/api`
 - 重新触发前端 **Redeploy**（构建参数变更需重新构建）
 - 后端已启用 `cors()`，跨域一般无问题
 
-### 3. 刷新页面 404
+### 4. 刷新页面 404
 
 - 前端必须使用本仓库 `deploy/nginx.conf`（SPA `try_files`），不要直接用静态文件服务省略 fallback
 
-### 4. 修改代码后如何更新
+### 5. `railway up` 构建失败
+
+- 后端 Root Directory = `server` 时，必须在**仓库根目录**执行 `railway up`，不要在 `server/` 内执行
+- 更推荐 `git push` 走 GitHub 自动部署
+
+### 6. 修改代码后如何更新
 
 - Push 到 GitHub → Railway 自动重新部署
 - 若只改前端 API 地址：修改变量后在前端 Service 手动 **Redeploy**
 
-### 5. 费用
+### 7. 费用
 
 - Railway 每月有免费额度（约 $5 credit），轻量后台通常够用
 - 超出后按用量计费，可在 Dashboard 设置 **Usage Limit**

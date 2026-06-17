@@ -3,7 +3,8 @@
 本文档说明如何将 **通用后台管理系统** 发布到线上环境。
 
 > 推荐平台：[Railway](https://railway.app/)（无需购买云服务器 ECS，按量计费，有免费额度）  
-> Railway 详细图文步骤见：[docs/DEPLOY-RAILWAY.md](./docs/DEPLOY-RAILWAY.md)
+> Railway 详细图文步骤见：[docs/DEPLOY-RAILWAY.md](./docs/DEPLOY-RAILWAY.md)  
+> **部署踩坑速查：** [docs/DEPLOY-PITFALLS.md](./docs/DEPLOY-PITFALLS.md)
 
 ---
 
@@ -124,13 +125,13 @@ GET https://你的后端域名/health
 
 **初始化数据库（仅首次）：**
 
-```bash
-npm i -g @railway/cli
-cd server
-railway login
-railway link          # 选择 Project 与后端 Service
-railway run npm run db:init
-```
+详见 [docs/DEPLOY-PITFALLS.md §三](./docs/DEPLOY-PITFALLS.md#三数据库未初始化)。推荐方式：
+
+1. 推送含自动建表逻辑的后端代码，部署后在 Deploy Logs 确认 `[DB] 默认管理员已导入`
+2. 或 MySQL 开公网，本机 `npm run server:db:init`
+3. 或 `railway ssh` 进后端容器执行 `npm run db:init`
+
+> ⚠️ 勿在本机使用 `railway run npm run db:init`（内网地址不可达）。
 
 ### 3.3 前端 Service
 
@@ -194,7 +195,8 @@ VITE_API_SUCCESS_CODE=200
 | `server/railway.toml` | 后端 Railway 构建配置 |
 | `.env.production.example` | 前端生产环境变量模板 |
 | `server/.env.railway.example` | 后端 Railway 环境变量模板 |
-| `docs/DEPLOY-RAILWAY.md` | Railway 详细步骤与排错 |
+| `docs/DEPLOY-RAILWAY.md` | Railway 详细步骤 |
+| `docs/DEPLOY-PITFALLS.md` | Railway 部署易错清单（排错优先看） |
 
 ---
 
@@ -204,7 +206,7 @@ VITE_API_SUCCESS_CODE=200
 - [ ] 后端 Root Directory = `server`
 - [ ] 后端 DB 环境变量已配置，`DB_SSL=true`
 - [ ] `GET /health` 返回 ok
-- [ ] 已执行 `railway run npm run db:init`
+- [ ] 数据库已初始化（Deploy Logs 有 `[DB] 初始化完成` 或手动 `db:init` 成功）
 - [ ] 前端 `VITE_API_BASE_URL` 指向后端公网地址
 - [ ] 前端域名可访问，登录成功
 - [ ] 侧边栏菜单、员工管理、角色管理功能正常
