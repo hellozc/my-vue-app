@@ -1,4 +1,5 @@
-# 前端静态站点（Railway 第二个 Service 使用）
+# 前端静态站点（Railway 前端 Service）
+# 要求：Railway Settings → Builder 必须选 Dockerfile
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -8,7 +9,6 @@ RUN npm install
 
 COPY . .
 
-# 构建时注入后端 API 地址，Railway 可在 Variables 里设置
 ARG VITE_API_BASE_URL=/api
 ENV VITE_USE_MOCK=false
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
@@ -22,6 +22,7 @@ FROM nginx:1.27-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+ENV PORT=8080
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
