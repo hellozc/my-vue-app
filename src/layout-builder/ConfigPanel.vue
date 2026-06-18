@@ -8,6 +8,39 @@
           <el-tab-pane label="页面设置" name="page" />
         </el-tabs>
 
+        <div class="config-panel__detail">
+          <template v-if="selectionMode === 'page'">
+            <PageSettingsPanel v-model="pageSettings" />
+          </template>
+          <template v-else-if="selectionMode === 'header'">
+            <div class="config-panel__detail-title">页面头部配置</div>
+            <HeaderConfig
+              v-model="header"
+              :components="components"
+              :layout-name="layoutName"
+            />
+          </template>
+          <template v-else-if="selectionMode === 'tabbar'">
+            <div class="config-panel__detail-title">底部 Tabbar 配置</div>
+            <TabbarConfig v-model="tabbar" />
+          </template>
+          <template v-else-if="selectedComponent">
+            <div class="config-panel__detail-title">
+              {{ getComponentLabel(selectedComponent.type) }}配置
+            </div>
+            <component
+              :is="getConfigComponent(selectedComponent.type)"
+              :key="selectedComponent.id"
+              v-model="selectedComponent.props"
+            />
+          </template>
+          <div v-else-if="selectionMode === 'component' && !selectedComponent" class="config-empty-tip">
+            <el-icon><Pointer /></el-icon>
+            <span>请在下方列表选择组件，或点击画布中的组件</span>
+          </div>
+          <el-empty v-else description="请选择页面、组件或壳层进行配置" :image-size="60" />
+        </div>
+
         <div v-if="subTab === 'list'" class="component-list">
           <div class="list-section">
             <div class="list-section__title">页面</div>
@@ -59,6 +92,16 @@
             <div class="list-section__title">壳层（固定位置）</div>
             <div
               class="list-item list-item--chrome"
+              :class="{ 'is-active': selectionMode === 'header' }"
+              @click="selectHeader"
+            >
+              <span class="list-item__tag list-item__tag--chrome">顶</span>
+              <span class="list-item__label">页面头部</span>
+              <el-tag v-if="header.enabled !== false" size="small" type="success">已启用</el-tag>
+              <el-tag v-else size="small" type="info">未启用</el-tag>
+            </div>
+            <div
+              class="list-item list-item--chrome"
               :class="{ 'is-active': selectionMode === 'tabbar' }"
               @click="selectTabbar"
             >
@@ -68,30 +111,6 @@
               <el-tag v-else size="small" type="info">未启用</el-tag>
             </div>
           </div>
-        </div>
-
-        <div class="config-panel__detail">
-          <template v-if="selectionMode === 'page'">
-            <PageSettingsPanel v-model="pageSettings" />
-          </template>
-          <template v-else-if="selectionMode === 'tabbar'">
-            <div class="config-panel__detail-title">底部 Tabbar 配置</div>
-            <TabbarConfig v-model="tabbar" />
-          </template>
-          <template v-else-if="selectedComponent">
-            <div class="config-panel__detail-title">
-              {{ getComponentLabel(selectedComponent.type) }}配置
-            </div>
-            <component
-              :is="getConfigComponent(selectedComponent.type)"
-              v-model="selectedComponent.props"
-            />
-          </template>
-          <div v-else-if="selectionMode === 'component' && !selectedComponent" class="config-empty-tip">
-            <el-icon><Pointer /></el-icon>
-            <span>请在上方列表选择组件，或拖拽组件到画布</span>
-          </div>
-          <el-empty v-else description="请选择页面、组件或壳层进行配置" :image-size="60" />
         </div>
       </el-tab-pane>
 
@@ -118,6 +137,7 @@ import draggable from 'vuedraggable'
 import { Delete, Pointer, Upload } from '@element-plus/icons-vue'
 import PageSettingsPanel from '@/layout-builder/PageSettingsPanel.vue'
 import TabbarConfig from '@/layout-builder/config/TabbarConfig.vue'
+import HeaderConfig from '@/layout-builder/config/HeaderConfig.vue'
 import { getComponentLabel, getConfigComponent } from '@/layout-builder/registry'
 import { SELECTION } from '@/layout-builder/constants'
 import { normalizeLayoutSchema } from '@/layout-builder/utils'
@@ -125,9 +145,11 @@ import { normalizeLayoutSchema } from '@/layout-builder/utils'
 const components = defineModel('components', { type: Array, required: true })
 const pageSettings = defineModel('pageSettings', { type: Object, required: true })
 const tabbar = defineModel('tabbar', { type: Object, required: true })
+const header = defineModel('header', { type: Object, required: true })
 
 const props = defineProps({
   selectedTarget: { type: String, default: '' },
+  layoutName: { type: String, default: '' },
 })
 
 const emit = defineEmits(['select', 'remove'])
@@ -145,7 +167,10 @@ const selectedComponent = computed(() => {
 watch(
   () => props.selectedTarget,
   (target) => {
-    if (target === SELECTION.TABBAR) {
+    if (target === SELECTION.HEADER) {
+      selectionMode.value = 'header'
+      subTab.value = 'list'
+    } else if (target === SELECTION.TABBAR) {
       selectionMode.value = 'tabbar'
       subTab.value = 'list'
     } else if (target && !target.startsWith('__')) {
@@ -158,7 +183,7 @@ watch(
 )
 
 watch(
-  [components, pageSettings, tabbar],
+  [components, pageSettings, tabbar, header],
   () => {
     if (mainTab.value === 'source') syncSource()
   },
@@ -177,6 +202,12 @@ function selectPage() {
   selectionMode.value = 'page'
   subTab.value = 'page'
   emit('select', SELECTION.PAGE)
+}
+
+function selectHeader() {
+  selectionMode.value = 'header'
+  subTab.value = 'list'
+  emit('select', SELECTION.HEADER)
 }
 
 function selectTabbar() {
@@ -207,7 +238,7 @@ function syncSource() {
     normalizeLayoutSchema({
       pageSettings: pageSettings.value,
       components: components.value,
-      chrome: { tabbar: tabbar.value },
+      chrome: { tabbar: tabbar.value, header: header.value },
     }),
     null,
     2
@@ -221,6 +252,7 @@ function applySource() {
     pageSettings.value = normalized.pageSettings
     components.value = normalized.components
     tabbar.value = normalized.chrome.tabbar
+    header.value = normalized.chrome.header
     ElMessage.success('JSON 已应用')
   } catch {
     ElMessage.error('JSON 格式无效')
@@ -262,7 +294,9 @@ function applySource() {
 }
 
 .component-list {
-  margin-bottom: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(99, 102, 241, 0.12);
 }
 
 .list-section {

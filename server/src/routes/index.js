@@ -6,6 +6,7 @@ import employeeRouter from './employee.js'
 import roleRouter from './role.js'
 import layoutRouter from './layout.js'
 import linkRouter from './link.js'
+import mediaRouter from './media.js'
 
 const router = Router()
 
@@ -16,5 +17,6 @@ router.use('/employee', employeeRouter)
 router.use('/role', roleRouter)
 router.use('/layout', layoutRouter)
 router.use('/link', linkRouter)
+router.use('/media', mediaRouter)
 
 export default router

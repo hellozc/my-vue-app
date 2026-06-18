@@ -8,9 +8,11 @@ export const COMPONENT_SCOPE = {
 
 export const CHROME_KEYS = {
   TABBAR: 'tabbar',
+  HEADER: 'header',
 }
 
 export const SELECTION = {
   PAGE: '__page__',
   TABBAR: '__tabbar__',
+  HEADER: '__header__',
 }

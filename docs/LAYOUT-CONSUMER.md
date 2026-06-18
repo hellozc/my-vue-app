@@ -23,7 +23,10 @@ npm run dev:app         # App
 
 1. 管理端后端已启动（默认 `http://localhost:8080`）
 2. 存在**已发布**布局，例如编码 `demo-home`（Mock 或数据库均可）
-3. 小程序调试时将 `.env.development` 中 `VITE_API_BASE_URL` 改为可访问的后端地址（不能用 `localhost`）
+3. **微信小程序**联调真实接口：
+   - 模拟器：`npm run dev:mp-weixin:api`（自动将 `/api` 拼为 `http://localhost:8080/api`）
+   - 真机：复制 `.env.integration.local.example` 为 `.env.integration.local`，把 `VITE_API_TARGET` 改为电脑局域网 IP
+   - 微信开发者工具 → 详情 → 本地设置 → 勾选「不校验合法域名」
 
 ## 与管理端对接
 

@@ -1,7 +1,10 @@
 <template>
   <view
     class="app-link"
-    :class="{ 'app-link--clickable': clickable }"
+    :class="{
+      'app-link--clickable': clickable,
+      'app-link--block': block,
+    }"
     @tap="handleTap"
   >
     <slot />
@@ -12,16 +15,26 @@
 import { computed } from 'vue'
 import { useLinkNavigation } from '@/composables/useLinkNavigation'
 
+defineOptions({
+  options: {
+    // 小程序端减少自定义组件包裹对 flex 布局的干扰
+    virtualHost: true,
+  },
+})
+
 const props = withDefaults(
   defineProps<{
     linkCode?: string
     legacyLink?: string
     disabled?: boolean
+    /** 占满父容器宽度（列表行等场景） */
+    block?: boolean
   }>(),
   {
     linkCode: '',
     legacyLink: '',
     disabled: false,
+    block: false,
   }
 )
 
@@ -39,6 +52,14 @@ async function handleTap() {
 </script>
 
 <style scoped>
+.app-link {
+  display: block;
+}
+
+.app-link--block {
+  width: 100%;
+}
+
 .app-link--clickable {
   cursor: pointer;
 }

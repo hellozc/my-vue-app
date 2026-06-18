@@ -47,19 +47,14 @@
 
       <template v-else>
         <el-form-item label="背景图设置">
-          <div class="upload-box" @click="triggerUpload">
-            <el-image v-if="model.backgroundImage" :src="model.backgroundImage" fit="cover" class="upload-box__preview" />
-            <div v-else class="upload-box__placeholder">
-              <el-icon><Plus /></el-icon>
-            </div>
-            <input ref="fileInputRef" type="file" accept="image/*" class="upload-box__input" @change="onFileChange" />
-          </div>
-          <el-input
+          <ImagePicker
             v-model="model.backgroundImage"
-            class="upload-url"
-            placeholder="或粘贴图片地址，如 https://..."
+            category="layout"
+            placeholder="上传页面背景图"
+            hint="建议宽 750px 以上，顶部对齐、宽度铺满"
+            preview-height="140px"
+            :max-size-m-b="3"
           />
-          <p class="field-hint">建议宽 750px 以上，顶部对齐、宽度铺满</p>
         </el-form-item>
       </template>
 
@@ -75,16 +70,17 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { CircleCheck, Plus } from '@element-plus/icons-vue'
+import { computed } from 'vue'
+import { CircleCheck } from '@element-plus/icons-vue'
+import { ImagePicker } from '@/components/media'
+import { resolveMediaUrl } from '@/utils/media'
 
 const model = defineModel({ type: Object, required: true })
-const fileInputRef = ref(null)
 
 const previewStyle = computed(() => {
   if (model.value.backgroundType === 'image' && model.value.backgroundImage) {
     return {
-      backgroundImage: `url(${model.value.backgroundImage})`,
+      backgroundImage: `url(${resolveMediaUrl(model.value.backgroundImage)})`,
       backgroundSize: '100% auto',
       backgroundPosition: 'top center',
       backgroundRepeat: 'no-repeat',
@@ -92,21 +88,6 @@ const previewStyle = computed(() => {
   }
   return { backgroundColor: model.value.backgroundColor || '#f5f7fa' }
 })
-
-function triggerUpload() {
-  fileInputRef.value?.click()
-}
-
-function onFileChange(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    model.value.backgroundImage = reader.result
-  }
-  reader.readAsDataURL(file)
-  event.target.value = ''
-}
 </script>
 
 <style scoped lang="scss">

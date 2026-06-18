@@ -1,46 +1,105 @@
 <template>
-  <view class="top-container" :style="{ background: containerBg }">
-    <view v-if="!carouselItems.length" class="top-container__empty">
-      <text>暂无可见轮播</text>
+  <view
+    class="top-container"
+    :class="[
+      `top-container--${resolved.variantMeta.wireframe}`,
+      { 'top-container--overlay': isOverlay },
+    ]"
+    :style="containerStyle"
+  >
+    <image
+      v-if="showBackground"
+      class="top-container__background"
+      :src="backgroundImageUrl"
+      mode="aspectFill"
+    />
+
+    <view class="top-container__content" :style="contentStyle">
+      <view v-if="!carouselItems.length && !showBackground" class="top-container__empty">
+        <text>请配置背景图或添加轮播</text>
+      </view>
+      <swiper
+        v-else-if="carouselItems.length"
+        class="top-container__swiper"
+        :style="{ height: `${resolved.carouselHeight}px` }"
+        :autoplay="resolved.carousel.autoplay !== false"
+        :interval="resolved.carousel.interval ?? 3000"
+        :circular="resolved.carousel.loop !== false"
+        :indicator-dots="resolved.carousel.indicator !== false"
+        indicator-active-color="#6366f1"
+      >
+        <swiper-item v-for="(item, index) in carouselItems" :key="index">
+          <AppLink
+            block
+            :link-code="item.linkCode"
+            :legacy-link="item.link"
+            class="top-container__slide"
+            :style="slideStyle(item)"
+          >
+            <image
+              v-if="item.image"
+              class="top-container__image"
+              :src="resolveMediaUrl(item.image)"
+              mode="aspectFill"
+            />
+            <text v-else-if="item.title" class="top-container__title">{{ item.title }}</text>
+          </AppLink>
+        </swiper-item>
+      </swiper>
     </view>
-    <swiper
-      v-else
-      class="top-container__swiper"
-      :style="{ height: `${carouselHeight}px` }"
-      :autoplay="carousel?.autoplay !== false"
-      :interval="carousel?.interval ?? 3000"
-      :circular="carousel?.loop !== false"
-      :indicator-dots="carousel?.indicator !== false"
-      indicator-active-color="#6366f1"
-    >
-      <swiper-item v-for="(item, index) in carouselItems" :key="index">
-        <view class="top-container__slide" :style="slideStyle(item)">
-          <image
-            v-if="item.image"
-            class="top-container__image"
-            :src="item.image"
-            mode="aspectFill"
-          />
-          <text v-else class="top-container__title">{{ item.title || `轮播 ${index + 1}` }}</text>
-        </view>
-      </swiper-item>
-    </swiper>
+
+    <view v-if="showBrand" class="top-container__brand" :style="brandStyle">
+      <AppLink
+        :link-code="resolved.brand.linkCode"
+        :legacy-link="resolved.brand.link"
+        class="top-container__brand-inner"
+      >
+        <image
+          v-if="resolved.brand.logo"
+          class="top-container__brand-logo"
+          :src="resolveMediaUrl(resolved.brand.logo)"
+          mode="aspectFill"
+        />
+        <text v-if="resolved.brand.title" class="top-container__brand-title">
+          {{ resolved.brand.title }}
+        </text>
+      </AppLink>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject, type Ref } from 'vue'
+import AppLink from '@/layout/components/AppLink.vue'
+import { resolveTopContainerProps, hasTopContainerBrandContent } from '@shared/layout/topContainer'
+import { resolveMediaUrl } from '@/utils/media'
 
 interface CarouselItem {
   title?: string
   image?: string
   bgColor?: string
+  linkCode?: string
+  link?: string
 }
 
 const props = withDefaults(
   defineProps<{
-    containerBg?: string
+    variant?: string
     styleVariant?: number
+    containerBg?: string
+    backgroundImage?: string
+    background?: {
+      show?: boolean
+      image?: string
+    }
+    occupySpace?: boolean
+    brand?: {
+      show?: boolean
+      logo?: string
+      title?: string
+      linkCode?: string
+      link?: string
+    }
     carousel?: {
       autoplay?: boolean
       interval?: number
@@ -51,23 +110,93 @@ const props = withDefaults(
   }>(),
   {
     containerBg: '#ffffff',
-    styleVariant: 1,
+    backgroundImage: '',
+    background: () => ({}),
     carousel: () => ({}),
   }
 )
 
-const carouselItems = computed(() => props.carousel?.items ?? [])
-const carouselHeight = computed(() => (props.styleVariant === 1 ? 140 : 120))
+const resolved = computed(() => resolveTopContainerProps(props))
+const isOverlay = computed(() => resolved.value.occupySpace === false)
+const carouselItems = computed(() => resolved.value.carousel.items ?? [])
+const backgroundImageUrl = computed(() => resolveMediaUrl(resolved.value.background.image))
+const showBackground = computed(
+  () => resolved.value.background.show !== false && Boolean(backgroundImageUrl.value)
+)
+const showBrand = computed(() => {
+  const { brand, variantMeta } = resolved.value
+  return (
+    variantMeta.features.brand &&
+    brand.show !== false &&
+    hasTopContainerBrandContent(brand)
+  )
+})
+
+const defaultLayoutChrome = {
+  headerTotalHeightPx: 0,
+  isImmersiveHeader: false,
+  showCustomHeader: false,
+}
+
+const layoutChrome = inject<Ref<typeof defaultLayoutChrome> | null>('layoutChrome', null)
+
+const brandStyle = computed(() => {
+  const chrome = layoutChrome?.value ?? defaultLayoutChrome
+  if (!chrome.showCustomHeader || !chrome.isImmersiveHeader) {
+    return {}
+  }
+  const offset = chrome.headerTotalHeightPx
+  if (offset > 0) {
+    return { top: `calc(${offset}px + 20rpx)` }
+  }
+  return { top: 'calc(env(safe-area-inset-top) + 20rpx)' }
+})
+
+const containerStyle = computed(() => ({
+  background: resolved.value.containerBg,
+  ...(isOverlay.value
+    ? {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1,
+      }
+    : {}),
+}))
+
+const contentStyle = computed(() => ({
+  minHeight: `${resolved.value.carouselHeight}px`,
+}))
 
 function slideStyle(item: CarouselItem) {
   if (item.image) return {}
-  return { background: item.bgColor || '#eef2ff' }
+  return { background: item.bgColor || 'transparent' }
 }
 </script>
 
 <style scoped>
 .top-container {
+  position: relative;
   overflow: hidden;
+}
+
+.top-container--overlay {
+  border-radius: 0;
+}
+
+.top-container__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.top-container__content {
+  position: relative;
+  z-index: 1;
 }
 
 .top-container__empty {
@@ -77,7 +206,7 @@ function slideStyle(item: CarouselItem) {
   justify-content: center;
   color: #909399;
   font-size: 26rpx;
-  background: #f5f7fa;
+  background: rgba(245, 247, 250, 0.72);
 }
 
 .top-container__slide {
@@ -98,5 +227,41 @@ function slideStyle(item: CarouselItem) {
   font-weight: 600;
   padding: 0 32rpx;
   text-align: center;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 12rpx;
+}
+
+.top-container__brand {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  z-index: 2;
+}
+
+.top-container__brand-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 16rpx 8rpx 8rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4rpx 16rpx rgba(15, 23, 42, 0.08);
+}
+
+.top-container__brand-logo {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.top-container__brand-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #303133;
+  max-width: 280rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

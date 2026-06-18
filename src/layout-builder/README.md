@@ -111,8 +111,24 @@ layoutComponentRegistry.myComponent = {
 
 | type | 说明 |
 |------|------|
-| `topContainer` | 顶部容器 + 轮播 |
+| `topContainer` | 顶部容器：品牌区 + 轮播，变体见 `shared/layout/topContainer.js` |
 | `carousel` | 独立轮播 |
 | `grid` | 页面宫格（body，可多个） |
 | `list` | 图文列表 |
 | `chrome.tabbar` | 底部 Tabbar（壳层，固定） |
+
+### 扩展顶部容器样式
+
+在 `shared/layout/topContainer.js` 的 `TOP_CONTAINER_VARIANTS` 追加一项即可，编辑器会自动出现可视化选项，展示端按 `variant` 渲染：
+
+```js
+{
+  key: 'hero-card',
+  label: '卡片头图',
+  description: '说明文案',
+  height: 160,
+  wireframe: 'compact', // immersive | compact，用于配置面板示意图
+  features: { brand: true, indicator: true },
+  defaultOccupySpace: true,
+}
+```

@@ -1,14 +1,35 @@
 <template>
   <view class="layout-shell" :style="pageStyle">
+    <AppHeader
+      v-if="showCustomHeader"
+      :title="header.title"
+      :show-back="header.showBack"
+      :background="header.resolvedBackground"
+      :color="header.resolvedColor"
+      :height="header.height"
+      :safe-area-inset="header.safeAreaInset !== false"
+      :immersive="header.isImmersive"
+      :right-actions="header.rightActions"
+      fixed
+    />
+
     <view class="layout-shell__body" :style="bodyStyle">
       <template v-for="item in components" :key="item.id">
-        <component
-          :is="resolveBlock(item.type)"
-          v-if="resolveBlock(item.type)"
-          v-bind="item.props"
+        <view
+          v-if="isOverlayTopContainer(item)"
+          class="layout-shell__overlay-host"
+          :style="getOverlayHostStyle(item)"
+        >
+          <LayoutBlockRenderer :type="item.type" :block-props="item.props" />
+        </view>
+        <LayoutBlockRenderer
+          v-else
+          :type="item.type"
+          :block-props="item.props"
         />
       </template>
     </view>
+
     <TabbarBlock
       v-if="tabbar.enabled"
       class="layout-shell__tabbar"
@@ -18,28 +39,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, reactive, ref } from 'vue'
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
 import type { LayoutSchema } from '@/layout/types'
 import { normalizeLayoutSchema } from '@/layout/normalize'
-import { getBlockComponent } from '@/layout/registry'
+import LayoutBlockRenderer from '@/layout/renderer/LayoutBlockRenderer.vue'
 import TabbarBlock from '@/layout/blocks/TabbarBlock.vue'
+import AppHeader from '@/layout/chrome/AppHeader.vue'
 import { getLinkOptions } from '@/api/link'
 import { buildLinkRegistry } from '@/utils/link'
 import { useSafeAreaBottom } from '@/composables/useSafeAreaBottom'
+import { useSafeAreaTop } from '@/composables/useSafeAreaTop'
+import { resolveHeaderConfig } from '@shared/layout/header'
+import { resolveTopContainerProps } from '@shared/layout/topContainer'
 import { pxToRpx } from '@/utils/unit'
 
 const props = withDefaults(
   defineProps<{
     schema: LayoutSchema
     interactive?: boolean
+    layoutName?: string
+    layoutCode?: string
   }>(),
   {
     interactive: true,
+    layoutName: '',
+    layoutCode: '',
   }
 )
 
 const linkRegistry = reactive<Record<string, import('@/layout/types').LinkRecord>>({})
 const safeAreaBottom = useSafeAreaBottom()
+const { topInset } = useSafeAreaTop()
 
 provide('linkRegistry', linkRegistry)
 provide('layoutInteractive', ref(props.interactive))
@@ -47,6 +77,42 @@ provide('layoutInteractive', ref(props.interactive))
 const normalized = computed(() => normalizeLayoutSchema(props.schema))
 const components = computed(() => normalized.value.components)
 const tabbar = computed(() => normalized.value.chrome.tabbar)
+const header = computed(() =>
+  resolveHeaderConfig(normalized.value.chrome.header, {
+    components: components.value,
+    layoutName: props.layoutName,
+    layoutCode: props.layoutCode,
+  })
+)
+
+const showCustomHeader = computed(() => header.value.shouldRenderChrome)
+
+const headerTotalHeightPx = computed(() => {
+  if (!showCustomHeader.value) return 0
+  const contentHeight = header.value.height ?? 44
+  const inset = header.value.safeAreaInset !== false ? topInset.value : 0
+  return inset + contentHeight
+})
+
+const layoutChrome = computed(() => ({
+  headerTotalHeightPx: headerTotalHeightPx.value,
+  headerContentHeightPx: header.value.height ?? 44,
+  statusBarHeightPx: header.value.safeAreaInset !== false ? topInset.value : 0,
+  isImmersiveHeader: header.value.isImmersive,
+  showCustomHeader: showCustomHeader.value,
+}))
+
+provide('layoutChrome', layoutChrome)
+
+watch(
+  headerTotalHeightPx,
+  (height) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--layout-header-total-height', `${height}px`)
+    }
+  },
+  { immediate: true }
+)
 
 const pageStyle = computed(() => {
   const settings = normalized.value.pageSettings
@@ -63,8 +129,15 @@ const pageStyle = computed(() => {
 })
 
 const bodyStyle = computed(() => {
+  const styles: Record<string, string> = {}
+
+  if (showCustomHeader.value && !header.value.isImmersive) {
+    styles.paddingTop = pxToRpx(headerTotalHeightPx.value)
+  }
+
   if (!tabbar.value.enabled) {
-    return { paddingBottom: '24rpx' }
+    styles.paddingBottom = '24rpx'
+    return styles
   }
 
   const height = tabbar.value.props?.height ?? 50
@@ -72,20 +145,29 @@ const bodyStyle = computed(() => {
   const tabbarHeight = pxToRpx(height)
 
   if (!useSafeArea) {
-    return { paddingBottom: tabbarHeight }
+    styles.paddingBottom = tabbarHeight
+    return styles
   }
 
   if (safeAreaBottom.value > 0) {
-    return { paddingBottom: `calc(${tabbarHeight} + ${pxToRpx(safeAreaBottom.value)})` }
+    styles.paddingBottom = `calc(${tabbarHeight} + ${pxToRpx(safeAreaBottom.value)})`
+    return styles
   }
 
-  return {
-    paddingBottom: `calc(${tabbarHeight} + env(safe-area-inset-bottom))`,
-  }
+  styles.paddingBottom = `calc(${tabbarHeight} + env(safe-area-inset-bottom))`
+  return styles
 })
 
-function resolveBlock(type: string) {
-  return getBlockComponent(type)
+function isOverlayTopContainer(item: { type: string; props?: Record<string, unknown> }) {
+  if (item.type !== 'topContainer') return false
+  const resolved = resolveTopContainerProps(item.props ?? {})
+  return resolved.occupySpace === false
+}
+
+function getOverlayHostStyle(item: { type: string; props?: Record<string, unknown> }) {
+  if (!isOverlayTopContainer(item)) return undefined
+  const resolved = resolveTopContainerProps(item.props ?? {})
+  return { minHeight: `${resolved.carouselHeight}px` }
 }
 
 onMounted(async () => {
@@ -96,6 +178,11 @@ onMounted(async () => {
     /* 链接库加载失败时仍可使用旧版直链 */
   }
 })
+
+defineExpose({
+  header,
+  showCustomHeader,
+})
 </script>
 
 <style scoped>
@@ -105,6 +192,12 @@ onMounted(async () => {
 
 .layout-shell__body {
   min-height: 100vh;
+  position: relative;
+}
+
+.layout-shell__overlay-host {
+  position: relative;
+  z-index: 1;
 }
 
 .layout-shell__tabbar {

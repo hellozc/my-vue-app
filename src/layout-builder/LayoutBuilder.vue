@@ -19,8 +19,11 @@
         :selected-target="selectedTarget"
         :page-settings="schema.pageSettings"
         :tabbar="schema.chrome.tabbar"
+        :header="schema.chrome.header"
+        :layout-name="title"
         @select-component="selectedTarget = $event"
         @select-tabbar="selectedTarget = SELECTION.TABBAR"
+        @select-header="selectedTarget = SELECTION.HEADER"
         @remove="removeComponent"
         @clear="clearComponents"
         @move-up="(index) => moveComponent(index, -1)"
@@ -30,6 +33,8 @@
         v-model:components="schema.components"
         v-model:page-settings="schema.pageSettings"
         v-model:tabbar="schema.chrome.tabbar"
+        v-model:header="schema.chrome.header"
+        :layout-name="title"
         :selected-target="selectedTarget"
         @select="selectedTarget = $event"
         @remove="removeComponent"
@@ -75,6 +80,7 @@ watch(
       schema.pageSettings = normalized.pageSettings
       schema.components = normalized.components
       schema.chrome.tabbar = normalized.chrome.tabbar
+      schema.chrome.header = normalized.chrome.header
     }
   }
 )

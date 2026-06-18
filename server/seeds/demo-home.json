@@ -16,17 +16,43 @@
         "id": "cmp_preview_top",
         "type": "topContainer",
         "props": {
-          "styleVariant": 1,
+          "variant": "immersive-banner",
+          "occupySpace": false,
           "containerBg": "#ffffff",
+          "brand": {
+            "show": true,
+            "logo": "",
+            "title": "滨江未来社区",
+            "linkCode": "home",
+            "link": ""
+          },
           "carousel": {
             "autoplay": true,
             "interval": 3500,
             "loop": true,
             "indicator": true,
             "items": [
-              { "title": "社区欢迎季 · 精彩内容不断", "image": "", "bgColor": "#eef2ff" },
-              { "title": "邻里活动火热报名中", "image": "", "bgColor": "#e0e7ff" },
-              { "title": "热点资讯每日更新", "image": "", "bgColor": "#ede9fe" }
+              {
+                "title": "社区欢迎季 · 精彩内容不断",
+                "image": "",
+                "bgColor": "#eef2ff",
+                "linkCode": "community-news",
+                "link": ""
+              },
+              {
+                "title": "邻里活动火热报名中",
+                "image": "",
+                "bgColor": "#e0e7ff",
+                "linkCode": "",
+                "link": ""
+              },
+              {
+                "title": "热点资讯每日更新",
+                "image": "",
+                "bgColor": "#ede9fe",
+                "linkCode": "",
+                "link": ""
+              }
             ]
           }
         }
@@ -48,6 +74,7 @@
           "iconWidth": 48,
           "iconHeight": 48,
           "iconBg": "#eef2ff",
+          "labelOverflow": "ellipsis",
           "items": [
             { "label": "社区", "icon": "OfficeBuilding", "linkCode": "community-news", "link": "" },
             { "label": "活动", "icon": "Calendar", "linkCode": "", "link": "" },
@@ -118,6 +145,25 @@
             { "label": "我的", "icon": "User", "linkCode": "user", "path": "/user" }
           ]
         }
+      },
+      "header": {
+        "enabled": true,
+        "mode": "auto",
+        "navigationStyle": "auto",
+        "title": "",
+        "showBack": "auto",
+        "background": "#ffffff",
+        "color": "#000000",
+        "height": 44,
+        "safeAreaInset": true,
+        "immersive": {
+          "blendWithTopContainer": true,
+          "background": "transparent",
+          "color": "#ffffff"
+        },
+        "rightActions": [
+          { "type": "icon", "icon": "share", "action": "share" }
+        ]
       }
     }
   }

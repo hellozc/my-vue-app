@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),
+        '@shared': resolve(__dirname, '../shared'),
       },
     },
     server: {
@@ -47,6 +48,10 @@ export default defineConfig(({ mode }) => {
         ? undefined
         : {
             '/api': {
+              target: apiTarget,
+              changeOrigin: true,
+            },
+            '/uploads': {
               target: apiTarget,
               changeOrigin: true,
             },

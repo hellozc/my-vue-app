@@ -18,6 +18,7 @@
     "dev:mp-toutiao": "uni -p mp-toutiao",
     "dev:mp-harmony": "uni -p mp-harmony",
     "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:mp-weixin:api": "uni -p mp-weixin --mode integration",
     "dev:mp-xhs": "uni -p mp-xhs",
     "dev:app": "uni -p app",
     "dev:quickapp-webview": "uni -p quickapp-webview",

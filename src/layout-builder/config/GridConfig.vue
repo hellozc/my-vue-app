@@ -79,6 +79,13 @@
                 <el-input v-model="model.iconBg" />
               </div>
             </el-form-item>
+            <el-form-item label="文案溢出">
+              <el-radio-group v-model="model.labelOverflow">
+                <el-radio :value="GRID_LABEL_OVERFLOW.ELLIPSIS">单行省略</el-radio>
+                <el-radio :value="GRID_LABEL_OVERFLOW.SCROLL">无缝滚动</el-radio>
+              </el-radio-group>
+              <div class="field-hint">保存后写入 schema，C 端按此配置渲染宫格名称</div>
+            </el-form-item>
           </div>
         </el-form>
       </el-tab-pane>
@@ -105,6 +112,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { LinkPicker } from '@/components/link'
+import { GRID_LABEL_OVERFLOW, normalizeGridProps } from '@shared/layout/grid'
 
 const model = defineModel({ type: Object, required: true })
 const activeTab = ref('style')
@@ -118,7 +126,15 @@ const RECOMMENDED = {
   5: { iconWidth: 36, iconHeight: 36, gap: 6, borderRadius: 6 },
 }
 
+function ensureGridProps() {
+  const normalized = normalizeGridProps(model.value)
+  if (model.value.labelOverflow !== normalized.labelOverflow) {
+    model.value.labelOverflow = normalized.labelOverflow
+  }
+}
+
 function syncItems() {
+  ensureGridProps()
   const total = totalCells.value
   const items = model.value.items
   while (items.length < total) {
@@ -142,6 +158,12 @@ function addItem() {
 function removeItem(index) {
   model.value.items.splice(index, 1)
 }
+
+watch(
+  () => model.value,
+  () => ensureGridProps(),
+  { immediate: true, deep: true }
+)
 
 watch(
   () => [model.value.columns, model.value.rows],

@@ -62,7 +62,14 @@
           <el-input v-model="item.title" placeholder="标题" />
           <el-input v-model="item.desc" placeholder="描述（可选）" />
           <el-input v-model="item.icon" placeholder="图标名（无图时）" />
-          <el-input v-model="item.image" placeholder="缩略图 URL（可选）" />
+          <el-form-item label="缩略图" label-width="72px" class="item-link-field">
+            <ImagePicker
+              v-model="item.image"
+              category="layout"
+              placeholder="上传缩略图"
+              preview-height="88px"
+            />
+          </el-form-item>
           <el-form-item label="跳转链接" label-width="72px" class="item-link-field">
             <LinkPicker v-model="item.linkCode" :legacy-link="item.link" category-filter="content" />
           </el-form-item>
@@ -77,6 +84,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { LinkPicker } from '@/components/link'
+import { ImagePicker } from '@/components/media'
 
 const model = defineModel({ type: Object, required: true })
 const activeTab = ref('style')

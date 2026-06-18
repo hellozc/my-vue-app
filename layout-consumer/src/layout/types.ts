@@ -18,6 +18,35 @@ export interface LayoutComponentItem {
   props: Record<string, unknown>
 }
 
+export interface HeaderRightAction {
+  type?: 'icon' | 'text'
+  icon?: string
+  text?: string
+  linkCode?: string
+  link?: string
+  action?: string
+}
+
+export interface HeaderImmersiveConfig {
+  blendWithTopContainer?: boolean
+  background?: string
+  color?: string
+}
+
+export interface HeaderConfig {
+  enabled?: boolean
+  mode?: 'auto' | 'native' | 'immersive'
+  navigationStyle?: 'auto' | 'default' | 'custom'
+  title?: string
+  showBack?: boolean | 'auto'
+  background?: string
+  color?: string
+  height?: number
+  safeAreaInset?: boolean
+  immersive?: HeaderImmersiveConfig
+  rightActions?: HeaderRightAction[]
+}
+
 export interface TabbarItem {
   label: string
   icon?: string
@@ -53,6 +82,7 @@ export interface LayoutSchema {
   components: LayoutComponentItem[]
   chrome: {
     tabbar: TabbarConfig
+    header: HeaderConfig
   }
 }
 

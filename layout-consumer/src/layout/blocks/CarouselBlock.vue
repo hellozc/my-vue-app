@@ -18,7 +18,7 @@
           <image
             v-if="item.image"
             class="carousel-block__image"
-            :src="item.image"
+            :src="resolveMediaUrl(item.image)"
             mode="aspectFill"
           />
           <text v-else class="carousel-block__title">{{ item.title || `轮播 ${index + 1}` }}</text>
@@ -29,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import { resolveMediaUrl } from '@/utils/media'
 interface CarouselItem {
   title?: string
   image?: string

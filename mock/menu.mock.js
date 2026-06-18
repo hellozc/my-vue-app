@@ -21,9 +21,10 @@ let menus = [
   { id: 13, parentId: 10, path: '/system/role', name: 'roleManage', label: '角色管理', icon: 'Key', component: 'system/RoleManage', sort: 3, type: 'menu' },
   { id: 14, parentId: 10, path: '/system/layout', name: 'layoutManage', label: '布局管理', icon: 'Grid', component: 'system/LayoutManage', sort: 4, type: 'menu' },
   { id: 15, parentId: 10, path: '/system/link', name: 'linkManage', label: '链接管理', icon: 'Link', component: 'system/LinkManage', sort: 5, type: 'menu' },
+  { id: 16, parentId: 10, path: '/system/media', name: 'mediaManage', label: '素材管理', icon: 'Picture', component: 'system/MediaManage', sort: 6, type: 'menu' },
 ]
 
-let nextId = 16
+let nextId = 17
 
 const parseToken = (authHeader = '') =>
   authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''

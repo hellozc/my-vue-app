@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { config } from './config/index.js'
+import { mediaConfig } from './config/media.js'
 import { testConnection } from './db/pool.js'
 import { ensureDatabaseSchema, ensureSchemaPatches } from './db/initSchema.js'
 import routes from './routes/index.js'
@@ -10,6 +11,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(mediaConfig.publicPath, express.static(mediaConfig.uploadRoot))
 
 app.use(config.apiPrefix, (req, res, next) => {
   res.set('Cache-Control', 'no-store')

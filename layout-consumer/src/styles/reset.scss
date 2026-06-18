@@ -1,0 +1,116 @@
+@use './tokens' as *;
+
+page {
+  box-sizing: border-box;
+  background-color: $lc-bg-page;
+  color: $lc-text-primary;
+  font-family: $lc-font-family;
+  font-size: 28rpx;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+view,
+text,
+scroll-view,
+swiper,
+swiper-item,
+image,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+image {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  line-height: inherit;
+  font-size: inherit;
+  color: inherit;
+
+  &::after {
+    border: none;
+  }
+}
+
+input,
+textarea {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* #ifdef H5 */
+html,
+body,
+#app,
+uni-app,
+uni-page,
+uni-page-wrapper,
+uni-page-body {
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: $lc-font-family;
+  background-color: $lc-bg-page;
+  color: $lc-text-primary;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(144, 147, 153, 0.45);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+/* #endif */

@@ -1,4 +1,5 @@
 import { createDefaultTabbar, normalizeTabbar } from '@/layout-builder/chrome/tabbar'
+import { createDefaultHeader, normalizeHeader } from '@/layout-builder/chrome/header'
 
 /** 布局 Schema 版本，展示端可按版本做兼容 */
 export const LAYOUT_SCHEMA_VERSION = 1
@@ -23,6 +24,7 @@ export function createEmptyLayout(overrides = {}) {
     components: [],
     chrome: {
       tabbar: createDefaultTabbar(),
+      header: createDefaultHeader(),
     },
     ...overrides,
   }
@@ -44,6 +46,7 @@ export function normalizeLayoutSchema(raw) {
     components: Array.isArray(raw.components) ? raw.components : [],
     chrome: {
       tabbar: normalizeTabbar(raw.chrome?.tabbar),
+      header: normalizeHeader(raw.chrome?.header),
     },
   }
 }

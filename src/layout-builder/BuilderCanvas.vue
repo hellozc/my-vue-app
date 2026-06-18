@@ -8,6 +8,23 @@
     </div>
     <div class="builder-canvas__stage">
       <div class="phone-frame" :style="frameStyle">
+        <div
+          v-if="headerPreview.shouldRenderChrome"
+          class="phone-frame__chrome phone-frame__chrome--top"
+          :class="{
+            'is-selected': selectedTarget === headerSelection,
+            'phone-frame__chrome--immersive': headerPreview.isImmersive,
+          }"
+          @click.stop="emit('select-header')"
+        >
+          <div class="canvas-block__tag canvas-block__tag--chrome">页面头部</div>
+          <HeaderChromeBlock
+            :header="header"
+            :components="components"
+            :layout-name="layoutName"
+          />
+        </div>
+
         <div class="phone-frame__body">
           <draggable
             v-model="components"
@@ -20,7 +37,11 @@
             <template #item="{ element, index }">
               <div
                 class="canvas-block"
-                :class="{ 'is-selected': selectedTarget === element.id }"
+                :class="{
+                  'is-selected': selectedTarget === element.id,
+                  'canvas-block--overlay-host': isOverlayTopContainer(element),
+                }"
+                :style="getOverlayHostStyle(element)"
                 @click.stop="emit('select-component', element.id)"
               >
                 <div class="canvas-block__tag">{{ getComponentLabel(element.type) }}</div>
@@ -50,7 +71,7 @@
                 </div>
                 <p class="phone-frame__placeholder-title">拖拽组件到此处</p>
                 <p class="phone-frame__placeholder-desc">从左侧组件库拖入，或点击组件快速添加</p>
-                <p class="phone-frame__hint">底部 Tabbar 请在右侧「壳层」中配置</p>
+                <p class="phone-frame__hint">页面头部、底部 Tabbar 请在右侧「壳层」中配置</p>
               </div>
             </template>
           </draggable>
@@ -76,8 +97,11 @@ import { ElMessageBox } from 'element-plus'
 import draggable from 'vuedraggable'
 import { Upload } from '@element-plus/icons-vue'
 import TabbarBlock from '@/layout-builder/blocks/TabbarBlock.vue'
+import HeaderChromeBlock from '@/layout-builder/blocks/HeaderChromeBlock.vue'
 import { getBlockComponent, getComponentLabel } from '@/layout-builder/registry'
 import { SELECTION } from '@/layout-builder/constants'
+import { resolveTopContainerProps } from '@shared/layout/topContainer'
+import { resolveHeaderConfig } from '@shared/layout/header'
 
 const components = defineModel({ type: Array, required: true })
 
@@ -85,11 +109,14 @@ const props = defineProps({
   selectedTarget: { type: String, default: '' },
   pageSettings: { type: Object, required: true },
   tabbar: { type: Object, required: true },
+  header: { type: Object, required: true },
+  layoutName: { type: String, default: '' },
 })
 
 const emit = defineEmits([
   'select-component',
   'select-tabbar',
+  'select-header',
   'remove',
   'clear',
   'move-up',
@@ -97,6 +124,14 @@ const emit = defineEmits([
 ])
 
 const tabbarSelection = SELECTION.TABBAR
+const headerSelection = SELECTION.HEADER
+
+const headerPreview = computed(() =>
+  resolveHeaderConfig(props.header, {
+    components: components.value,
+    layoutName: props.layoutName,
+  })
+)
 
 const frameStyle = computed(() => {
   const settings = props.pageSettings
@@ -113,6 +148,16 @@ const frameStyle = computed(() => {
 
 function resolveBlock(type) {
   return getBlockComponent(type)
+}
+
+function isOverlayTopContainer(element) {
+  return element.type === 'topContainer' && element.props?.occupySpace === false
+}
+
+function getOverlayHostStyle(element) {
+  if (!isOverlayTopContainer(element)) return undefined
+  const resolved = resolveTopContainerProps(element.props ?? {})
+  return { minHeight: `${resolved.carouselHeight}px` }
 }
 
 function onAdd(evt) {
@@ -182,12 +227,14 @@ async function handleClear() {
   border: 1px solid rgba(99, 102, 241, 0.2);
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .phone-frame__body {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  position: relative;
 }
 
 .phone-frame__dropzone {
@@ -208,6 +255,31 @@ async function handleClear() {
   &.is-selected {
     border-top-color: #6366f1;
     box-shadow: inset 0 0 0 2px #6366f1;
+  }
+
+  &--top {
+    border-top: none;
+    border-bottom: 2px solid transparent;
+
+    &.is-selected {
+      border-top-color: transparent;
+      border-bottom-color: #6366f1;
+      box-shadow: inset 0 0 0 2px #6366f1;
+    }
+
+    &.phone-frame__chrome--immersive {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      border-bottom: none;
+      box-shadow: none;
+
+      &.is-selected {
+        box-shadow: inset 0 0 0 2px #6366f1;
+      }
+    }
   }
 }
 
@@ -266,6 +338,10 @@ async function handleClear() {
 
   &.is-selected {
     border-color: #6366f1;
+  }
+
+  &--overlay-host {
+    z-index: 1;
   }
 
   &:hover .canvas-block__actions {

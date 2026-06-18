@@ -1,4 +1,5 @@
 import { createDefaultTabbar } from '@/layout-builder/chrome/tabbar'
+import { createDefaultHeader } from '@/layout-builder/chrome/header'
 import { LAYOUT_SCHEMA_VERSION } from '@/layout-builder/utils'
 
 /** 预览/示例统一视觉主题（社区首页风格） */
@@ -97,14 +98,44 @@ export const previewListProps = () => ({
 })
 
 export const previewTopContainerProps = () => ({
-  styleVariant: 1,
+  variant: 'immersive-banner',
+  occupySpace: false,
   containerBg: PREVIEW_THEME.cardBg,
+  brand: {
+    show: true,
+    logo: '',
+    title: '滨江未来社区',
+    linkCode: 'home',
+    link: '',
+  },
   carousel: {
     autoplay: true,
     interval: 3500,
     loop: true,
     indicator: true,
-    items: previewCarouselItems(),
+    items: [
+      {
+        title: '社区欢迎季 · 精彩内容不断',
+        image: '',
+        bgColor: '#eef2ff',
+        linkCode: 'community-news',
+        link: '',
+      },
+      {
+        title: '邻里活动火热报名中',
+        image: '',
+        bgColor: '#e0e7ff',
+        linkCode: '',
+        link: '',
+      },
+      {
+        title: '热点资讯每日更新',
+        image: '',
+        bgColor: '#ede9fe',
+        linkCode: '',
+        link: '',
+      },
+    ],
   },
 })
 
@@ -166,6 +197,10 @@ export function createPreviewLayout(overrides = {}) {
     ],
     chrome: {
       tabbar: previewTabbarChrome(),
+      header: {
+        ...createDefaultHeader(),
+        rightActions: [{ type: 'icon', icon: 'share', action: 'share' }],
+      },
     },
     ...overrides,
   }

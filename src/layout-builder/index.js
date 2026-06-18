@@ -21,3 +21,4 @@ export { default as LayoutRenderer } from '@/layout-builder/renderer/LayoutRende
 export { default as TabbarBlock } from '@/layout-builder/blocks/TabbarBlock.vue'
 export { COMPONENT_SCOPE, CHROME_KEYS, SELECTION } from '@/layout-builder/constants'
 export { createDefaultTabbar, normalizeTabbar } from '@/layout-builder/chrome/tabbar'
+export { createDefaultHeader, normalizeHeader } from '@/layout-builder/chrome/header'

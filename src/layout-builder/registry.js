@@ -9,6 +9,8 @@ import CarouselConfig from '@/layout-builder/config/CarouselConfig.vue'
 import GridConfig from '@/layout-builder/config/GridConfig.vue'
 import ListConfig from '@/layout-builder/config/ListConfig.vue'
 import { COMPONENT_SCOPE } from '@/layout-builder/constants'
+import { createDefaultTopContainerProps } from '@shared/layout/topContainer'
+import { createDefaultGridProps } from '@shared/layout/grid'
 
 /** 页面主体组件分类（左侧组件库，仅 body 可拖拽） */
 export const LAYOUT_CATEGORIES = [
@@ -27,22 +29,12 @@ export const layoutComponentRegistry = {
     label: '顶部容器',
     category: 'basic',
     scope: COMPONENT_SCOPE.BODY,
-    description: '顶部轮播容器，支持样式切换',
+    description: '顶部轮播 + 品牌区，支持样式变体注册',
     createInstance() {
       return {
         id: generateId(),
         type: 'topContainer',
-        props: {
-          styleVariant: 1,
-          containerBg: '#ffffff',
-          carousel: {
-            autoplay: true,
-            interval: 3000,
-            loop: true,
-            indicator: true,
-            items: [],
-          },
-        },
+        props: createDefaultTopContainerProps(),
       }
     },
     block: markRaw(TopContainerBlock),
@@ -81,20 +73,8 @@ export const layoutComponentRegistry = {
       return {
         id: generateId(),
         type: 'grid',
-        props: {
-          columns: 3,
-          rows: 2,
-          offsetY: 0,
-          marginX: 16,
-          background: '#ffffff',
-          blockRadius: 12,
-          showShadow: true,
+        props: createDefaultGridProps({
           padding: '12px',
-          gap: 8,
-          borderRadius: 8,
-          iconWidth: 52,
-          iconHeight: 52,
-          iconBg: '#f5f7fa',
           items: [
             { label: '菜单1', icon: 'Menu', linkCode: '', link: '' },
             { label: '菜单2', icon: 'Goods', linkCode: '', link: '' },
@@ -103,7 +83,7 @@ export const layoutComponentRegistry = {
             { label: '菜单5', icon: 'Document', linkCode: '', link: '' },
             { label: '菜单6', icon: 'Folder', linkCode: '', link: '' },
           ],
-        },
+        }),
       }
     },
     block: markRaw(GridBlock),

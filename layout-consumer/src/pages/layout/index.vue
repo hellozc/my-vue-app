@@ -7,31 +7,41 @@
       <text>{{ error }}</text>
       <button class="btn" @tap="reload">重试</button>
     </view>
-    <LayoutRenderer v-else-if="schema" :schema="schema" />
+    <LayoutRenderer
+      v-else-if="schema"
+      ref="rendererRef"
+      :schema="schema"
+      :layout-name="layoutName"
+      :layout-code="layoutCode"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app'
-import { ref } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { getLayoutByCode } from '@/api/layout'
 import LayoutRenderer from '@/layout/renderer/LayoutRenderer.vue'
 import type { LayoutSchema } from '@/layout/types'
 import { appConfig } from '@/config/env'
+import { resolveHeaderConfig } from '@shared/layout/header'
 
 const loading = ref(true)
 const error = ref('')
 const schema = ref<LayoutSchema | null>(null)
 const layoutCode = ref(appConfig.layoutCode)
+const layoutName = ref('')
+const rendererRef = ref<InstanceType<typeof LayoutRenderer> | null>(null)
 
 onLoad((query) => {
   if (query?.code) {
     layoutCode.value = String(query.code)
   }
-  uni.setNavigationBarTitle({
-    title: layoutCode.value,
-  })
   loadLayout()
+})
+
+watch(schema, () => {
+  nextTick(() => applyNativeNavigation())
 })
 
 async function loadLayout() {
@@ -41,15 +51,32 @@ async function loadLayout() {
 
   try {
     const data = await getLayoutByCode(layoutCode.value)
+    layoutName.value = data.name || layoutCode.value
     schema.value = data.schema
-    uni.setNavigationBarTitle({
-      title: data.name || layoutCode.value,
-    })
+    await nextTick()
+    applyNativeNavigation()
   } catch (err) {
     error.value = err instanceof Error ? err.message : '加载失败'
   } finally {
     loading.value = false
   }
+}
+
+function applyNativeNavigation() {
+  if (!schema.value) return
+
+  const header = resolveHeaderConfig(schema.value.chrome?.header, {
+    components: schema.value.components ?? [],
+    layoutName: layoutName.value,
+    layoutCode: layoutCode.value,
+  })
+
+  if (!header.enabled || !header.title) return
+
+  uni.setNavigationBarTitle({ title: header.title })
+  // #ifdef H5
+  document.title = header.title
+  // #endif
 }
 
 function reload() {

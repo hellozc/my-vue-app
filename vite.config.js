@@ -33,6 +33,7 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, 'src'),
         '@components': resolve(__dirname, 'src/components'),
         '@mock': resolve(__dirname, 'mock'),
+        '@shared': resolve(__dirname, 'shared'),
       },
     },
     server: {
@@ -46,6 +47,10 @@ export default defineConfig(({ mode }) => {
                 rewrite: (path) => path.replace(/^\/api/, ''),
               }),
             },
+        '/uploads': {
+          target: apiTarget,
+          changeOrigin: true,
+        },
       },
     },
     css: {

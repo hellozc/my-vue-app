@@ -2,7 +2,12 @@
   <div class="carousel-items-editor">
     <div v-for="(item, index) in model" :key="index" class="item-card">
       <el-input v-model="item.title" placeholder="标题" />
-      <el-input v-model="item.image" placeholder="图片 URL（可选）" />
+      <ImagePicker
+        v-model="item.image"
+        category="banner"
+        placeholder="上传轮播图"
+        preview-height="88px"
+      />
       <el-input v-model="item.bgColor" placeholder="背景色（无图时）" />
       <el-button link type="danger" @click="remove(index)">删除</el-button>
     </div>
@@ -11,6 +16,7 @@
 </template>
 
 <script setup>
+import { ImagePicker } from '@/components/media'
 const model = defineModel({ type: Array, required: true })
 
 function add() {

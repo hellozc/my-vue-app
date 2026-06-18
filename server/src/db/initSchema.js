@@ -24,6 +24,7 @@ const seedMenus = [
   { id: 13, parentId: 10, path: '/system/role', name: 'roleManage', label: '角色管理', icon: 'Key', component: 'system/RoleManage', sort: 3, type: 'menu' },
   { id: 14, parentId: 10, path: '/system/layout', name: 'layoutManage', label: '布局管理', icon: 'Grid', component: 'system/LayoutManage', sort: 4, type: 'menu' },
   { id: 15, parentId: 10, path: '/system/link', name: 'linkManage', label: '链接管理', icon: 'Link', component: 'system/LinkManage', sort: 5, type: 'menu' },
+  { id: 16, parentId: 10, path: '/system/media', name: 'mediaManage', label: '素材管理', icon: 'Picture', component: 'system/MediaManage', sort: 6, type: 'menu' },
 ]
 
 const seedRoles = [
@@ -77,6 +78,15 @@ const patchMenus = [
     component: 'system/LinkManage',
     sort: 5,
   },
+  {
+    parentPath: '/system',
+    path: '/system/media',
+    name: 'mediaManage',
+    label: '素材管理',
+    icon: 'Picture',
+    component: 'system/MediaManage',
+    sort: 6,
+  },
 ]
 
 const seedLinkCategories = [
@@ -94,6 +104,47 @@ const seedLinks = [
   { code: 'community-news', name: '社区资讯', categoryCode: 'content', type: 'internal', target: '/page1', description: '社区资讯列表' },
   { code: 'official-site', name: '官网', categoryCode: 'external', type: 'external', target: 'https://example.com', description: '站外官网示例' },
 ]
+
+const seedMediaCategories = [
+  { code: 'general', name: '通用素材', sort: 99, description: '默认分类' },
+  { code: 'layout', name: '布局素材', sort: 1, description: '页面背景、模块配图' },
+  { code: 'banner', name: '轮播 Banner', sort: 2, description: '顶部容器、轮播图' },
+  { code: 'logo', name: 'Logo 图标', sort: 3, description: '品牌 Logo、角标' },
+  { code: 'avatar', name: '头像', sort: 4, description: '用户头像、员工头像' },
+]
+
+const CREATE_MEDIA_CATEGORY_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS sys_media_category (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '分类编码',
+  name VARCHAR(100) NOT NULL COMMENT '分类名称',
+  sort INT NOT NULL DEFAULT 1 COMMENT '排序',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='素材分类表'
+`
+
+const CREATE_MEDIA_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS sys_media (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL COMMENT '素材名称',
+  category_code VARCHAR(50) NOT NULL DEFAULT 'general' COMMENT '素材分类编码',
+  url VARCHAR(500) NOT NULL COMMENT '访问 URL',
+  path VARCHAR(500) NOT NULL COMMENT '服务器相对路径',
+  mime_type VARCHAR(100) NOT NULL COMMENT 'MIME 类型',
+  file_size INT NOT NULL DEFAULT 0 COMMENT '文件大小（字节）',
+  width INT DEFAULT NULL COMMENT '图片宽度',
+  height INT DEFAULT NULL COMMENT '图片高度',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_category_code (category_code),
+  KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='图片素材表'
+`
 
 const CREATE_LINK_CATEGORY_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS sys_link_category (
@@ -252,6 +303,28 @@ async function seedDefaultLinks(conn) {
   console.log('[DB] 初始链接数据已导入')
 }
 
+async function ensureMediaCategoryTable(conn) {
+  await conn.query(CREATE_MEDIA_CATEGORY_TABLE_SQL)
+}
+
+async function ensureMediaTable(conn) {
+  await conn.query(CREATE_MEDIA_TABLE_SQL)
+}
+
+async function seedDefaultMediaCategories(conn) {
+  const [countRows] = await conn.query('SELECT COUNT(*) AS total FROM sys_media_category')
+  if (countRows[0].total > 0) return
+
+  for (const item of seedMediaCategories) {
+    await conn.query(
+      `INSERT INTO sys_media_category (code, name, sort, status, description)
+       VALUES (?, ?, ?, 'enabled', ?)`,
+      [item.code, item.name, item.sort, item.description ?? '']
+    )
+  }
+  console.log('[DB] 初始素材分类数据已导入')
+}
+
 async function ensureAdminSystemMenus(conn) {
   const [adminRole] = await conn.query('SELECT id FROM sys_role WHERE code = ?', ['admin'])
   if (adminRole.length === 0) return
@@ -274,6 +347,9 @@ export async function ensureSchemaPatches() {
     await seedDefaultLinkCategories(conn)
     await ensureLinkTable(conn)
     await seedDefaultLinks(conn)
+    await ensureMediaCategoryTable(conn)
+    await seedDefaultMediaCategories(conn)
+    await ensureMediaTable(conn)
     await ensureAdminSystemMenus(conn)
     await ensureLayoutTable(conn)
     await seedDemoHomeLayout(conn)
@@ -364,7 +440,7 @@ export async function ensureDatabaseSchema({ force = false } = {}) {
           ]
         )
       }
-      await rootConn.query('ALTER TABLE sys_menu AUTO_INCREMENT = 16')
+      await rootConn.query('ALTER TABLE sys_menu AUTO_INCREMENT = 17')
       console.log('[DB] 初始菜单数据已导入')
     } else {
       for (const menu of patchMenus) {
@@ -376,6 +452,9 @@ export async function ensureDatabaseSchema({ force = false } = {}) {
     await seedDefaultLinkCategories(rootConn)
     await ensureLinkTable(rootConn)
     await seedDefaultLinks(rootConn)
+    await ensureMediaCategoryTable(rootConn)
+    await seedDefaultMediaCategories(rootConn)
+    await ensureMediaTable(rootConn)
     await ensureLayoutTable(rootConn)
     await seedDemoHomeLayout(rootConn)
 

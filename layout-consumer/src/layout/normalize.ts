@@ -1,4 +1,5 @@
-import { LAYOUT_SCHEMA_VERSION, type LayoutSchema, type TabbarConfig } from './types'
+import { LAYOUT_SCHEMA_VERSION, type HeaderConfig, type LayoutSchema, type TabbarConfig } from './types'
+import { normalizeHeader } from '@shared/layout/header'
 
 function createDefaultTabbar(): TabbarConfig {
   return {
@@ -45,7 +46,10 @@ export function normalizeLayoutSchema(raw?: Partial<LayoutSchema> | null): Layou
         backgroundImage: '',
       },
       components: [],
-      chrome: { tabbar: createDefaultTabbar() },
+      chrome: {
+        tabbar: createDefaultTabbar(),
+        header: normalizeHeader(),
+      },
     }
   }
 
@@ -59,6 +63,7 @@ export function normalizeLayoutSchema(raw?: Partial<LayoutSchema> | null): Layou
     components: Array.isArray(raw.components) ? raw.components : [],
     chrome: {
       tabbar: normalizeTabbar(raw.chrome?.tabbar),
+      header: normalizeHeader(raw.chrome?.header as HeaderConfig | undefined),
     },
   }
 }

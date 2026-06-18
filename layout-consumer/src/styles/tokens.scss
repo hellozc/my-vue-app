@@ -1,0 +1,25 @@
+// layout-consumer 设计 token（组件内可用 @use '@/styles/tokens' as *;）
+
+$lc-color-primary: #6366f1;
+$lc-color-success: #10b981;
+$lc-color-warning: #f59e0b;
+$lc-color-danger: #ef4444;
+
+$lc-bg-page: #f5f7fa;
+$lc-bg-card: #ffffff;
+$lc-bg-muted: #eef2ff;
+
+$lc-text-primary: #303133;
+$lc-text-regular: #606266;
+$lc-text-secondary: #909399;
+$lc-text-placeholder: #c0c4cc;
+
+$lc-border-color: #ebeef5;
+$lc-border-color-light: #f2f3f5;
+
+$lc-header-height: 44px;
+$lc-radius-sm: 8rpx;
+$lc-radius-base: 12rpx;
+$lc-radius-lg: 16rpx;
+
+$lc-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
