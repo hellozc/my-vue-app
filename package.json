@@ -15,7 +15,8 @@
     "server:dev": "npm run dev --prefix server",
     "server:start": "npm run start --prefix server",
     "server:db:init": "npm run db:init --prefix server",
-    "server:db:seed:demo-home": "npm run db:seed:demo-home --prefix server"
+    "server:db:seed:demo-home": "npm run db:seed:demo-home --prefix server",
+    "sync:layout-shared": "node layout-consumer/scripts/sync-shared.mjs"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

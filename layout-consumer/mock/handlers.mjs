@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const demoHomeSeed = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../../shared/seeds/demo-home.json'), 'utf8')
+  fs.readFileSync(path.join(__dirname, '../shared/seeds/demo-home.json'), 'utf8')
 )
 
 const LINKS = [
