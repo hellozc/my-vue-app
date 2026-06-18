@@ -33,6 +33,10 @@ function resolveApiOrigin(apiBaseUrl: string) {
   if (/^https?:\/\//i.test(apiBaseUrl)) {
     return apiBaseUrl.replace(/\/api\/?$/, '')
   }
+  // #ifdef H5
+  const target = (import.meta.env.VITE_API_TARGET || 'http://localhost:8080').trim().replace(/\/$/, '')
+  return target
+  // #endif
   return apiTarget
 }
 

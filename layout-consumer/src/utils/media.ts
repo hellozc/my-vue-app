@@ -6,11 +6,9 @@ export function resolveMediaUrl(url?: string) {
   if (/^https?:\/\//i.test(url) || url.startsWith('data:')) return url
   if (!url.startsWith('/')) return url
 
-  // #ifdef H5
-  return url
-  // #endif
+  if (appConfig.apiOrigin) {
+    return `${appConfig.apiOrigin}${url}`
+  }
 
-  // #ifndef H5
-  return `${appConfig.apiOrigin}${url}`
-  // #endif
+  return url
 }
