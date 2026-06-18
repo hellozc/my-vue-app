@@ -20,8 +20,16 @@ CREATE TABLE IF NOT EXISTS sys_layout (
 `
 
 export function loadDemoHomeSeed() {
-  const seedPath = path.join(__dirname, '../../../shared/seeds/demo-home.json')
-  return JSON.parse(fs.readFileSync(seedPath, 'utf8'))
+  const candidates = [
+    path.join(__dirname, '../../seeds/demo-home.json'),
+    path.join(__dirname, '../../../shared/seeds/demo-home.json'),
+  ]
+  for (const seedPath of candidates) {
+    if (fs.existsSync(seedPath)) {
+      return JSON.parse(fs.readFileSync(seedPath, 'utf8'))
+    }
+  }
+  throw new Error(`未找到 demo-home 种子文件，已尝试: ${candidates.join(', ')}`)
 }
 
 export async function ensureLayoutTable(conn) {
@@ -32,9 +40,9 @@ export async function ensureLayoutTable(conn) {
  * 导入并发布 demo-home 示例布局（与 shared/seeds/demo-home.json、C 端 Mock 同源）
  * - 不存在：插入并发布
  * - 已存在且为 draft：同步 Schema 并发布
- * - 已发布：不覆盖（避免冲掉管理端已改内容）
+ * - 已发布：默认 skip；传 force:true 或 --force 强制同步 Schema
  */
-export async function seedDemoHomeLayout(conn) {
+export async function seedDemoHomeLayout(conn, { force = false } = {}) {
   const seed = loadDemoHomeSeed()
   const schemaJson = JSON.stringify(seed.schema)
 
@@ -53,7 +61,7 @@ export async function seedDemoHomeLayout(conn) {
     return { action: 'inserted' }
   }
 
-  if (rows[0].status === 'draft') {
+  if (rows[0].status === 'draft' || force) {
     await conn.query(
       `UPDATE sys_layout SET
          name = ?,
@@ -64,8 +72,8 @@ export async function seedDemoHomeLayout(conn) {
        WHERE code = ?`,
       [seed.name, seed.description ?? '', seed.version ?? 1, schemaJson, seed.code]
     )
-    console.log('[DB] demo-home 已同步示例 Schema 并发布')
-    return { action: 'published' }
+    console.log(force ? '[DB] demo-home 已强制同步示例 Schema 并发布' : '[DB] demo-home 已同步示例 Schema 并发布')
+    return { action: force ? 'forced' : 'published' }
   }
 
   return { action: 'skipped' }

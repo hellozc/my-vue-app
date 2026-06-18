@@ -252,18 +252,17 @@ async function seedDefaultLinks(conn) {
   console.log('[DB] 初始链接数据已导入')
 }
 
-async function ensureLinkMenuForAdmin(conn) {
-  for (const menu of patchMenus.filter((item) => item.path === '/system/link')) {
-    const menuId = await ensureMenuByPath(conn, menu)
-    if (!menuId) return
+async function ensureAdminSystemMenus(conn) {
+  const [adminRole] = await conn.query('SELECT id FROM sys_role WHERE code = ?', ['admin'])
+  if (adminRole.length === 0) return
 
-    const [adminRole] = await conn.query('SELECT id FROM sys_role WHERE code = ?', ['admin'])
-    if (adminRole.length > 0) {
-      await conn.query(
-        'INSERT IGNORE INTO sys_role_menu (role_id, menu_id) VALUES (?, ?)',
-        [adminRole[0].id, menuId]
-      )
-    }
+  for (const menu of patchMenus) {
+    const menuId = await ensureMenuByPath(conn, menu)
+    if (!menuId) continue
+    await conn.query(
+      'INSERT IGNORE INTO sys_role_menu (role_id, menu_id) VALUES (?, ?)',
+      [adminRole[0].id, menuId]
+    )
   }
 }
 
@@ -275,7 +274,7 @@ export async function ensureSchemaPatches() {
     await seedDefaultLinkCategories(conn)
     await ensureLinkTable(conn)
     await seedDefaultLinks(conn)
-    await ensureLinkMenuForAdmin(conn)
+    await ensureAdminSystemMenus(conn)
     await ensureLayoutTable(conn)
     await seedDemoHomeLayout(conn)
   } catch (err) {
