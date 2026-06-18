@@ -1,6 +1,7 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+# 构建上下文为仓库根目录时，Dockerfile 路径相对根目录
+dockerfilePath = "layout-consumer/Dockerfile"
 
 [deploy]
 healthcheckPath = "/"

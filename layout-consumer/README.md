@@ -88,3 +88,22 @@ src/
 - 点击统计：`POST /api/link/track/:code`
 
 Schema 结构与管理端 `layout-builder` 保持一致。
+
+## Railway 部署（H5）
+
+C 端依赖仓库根目录的 `shared/`（与 admin 共用布局逻辑），**Root Directory 必须留空（仓库根）**，不能填 `layout-consumer`。
+
+| Railway 设置 | 值 |
+|--------------|-----|
+| Root Directory | 留空 |
+| Dockerfile Path | `layout-consumer/Dockerfile` |
+| Config file | `layout-consumer/railway.toml` |
+
+**Variables（构建时注入）：**
+
+| 变量 | 示例 |
+|------|------|
+| `VITE_API_BASE_URL` | `https://你的后端域名/api` |
+| `VITE_LAYOUT_CODE` | `demo-home` |
+
+构建失败若提示 `Could not load .../shared/layout/...`，说明 Root Directory 仍指向 `layout-consumer`，请改为仓库根目录后重新部署。
