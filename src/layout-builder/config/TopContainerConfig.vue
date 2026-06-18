@@ -26,7 +26,7 @@
         </el-form>
 
         <el-divider content-position="left">轮播规则</el-divider>
-        <el-form label-width="88px" size="small" class="config-form">
+        <el-form v-if="isCarouselMode" label-width="88px" size="small" class="config-form">
           <el-form-item label="自动播放">
             <el-switch v-model="model.carousel.autoplay" />
           </el-form-item>
@@ -44,6 +44,17 @@
 
       <el-tab-pane label="内容配置" name="content">
         <div class="config-section config-section--highlight">
+          <div class="config-section__title">顶部视觉</div>
+          <el-radio-group v-model="visualMode" class="layout-mode-group">
+            <el-radio :value="VISUAL_MODE.BACKGROUND">静态背景图</el-radio>
+            <el-radio :value="VISUAL_MODE.CAROUSEL">轮播图</el-radio>
+          </el-radio-group>
+          <p class="field-hint">
+            静态背景与轮播二选一，避免轮播叠在背景上互相遮挡。社区首页常用「静态背景 + 品牌 Logo」。
+          </p>
+        </div>
+
+        <div v-if="isBackgroundMode" class="config-section config-section--highlight">
           <div class="config-section__title">顶部背景图</div>
           <el-form label-width="88px" size="small" class="config-form">
             <el-form-item label="显示背景">
@@ -55,16 +66,19 @@
                   v-model="model.background.image"
                   category="banner"
                   placeholder="上传顶部大背景"
-                  hint="建议宽 750px 以上；可只配背景图不配轮播"
+                  hint="建议宽 750px 以上"
                   preview-height="140px"
                   :max-size-m-b="3"
                 />
               </el-form-item>
             </template>
           </el-form>
-          <p class="field-hint">
-            背景图铺在最底层，品牌 Logo 与轮播叠在上方。社区首页通常只配背景图 + Logo 即可。
-          </p>
+        </div>
+
+        <div v-else class="config-section config-section--highlight">
+          <div class="config-section__title">轮播内容</div>
+          <p class="field-hint section-hint">轮播模式下使用轮播项图片作为顶部主视觉。</p>
+          <MediaCarouselEditor v-model="model.carousel.items" />
         </div>
 
         <div class="config-section">
@@ -96,10 +110,6 @@
             </template>
           </el-form>
         </div>
-
-        <el-divider content-position="left">轮播内容（可选）</el-divider>
-        <p class="field-hint section-hint">有背景图时可不配置轮播；轮播会叠在背景图上方。</p>
-        <MediaCarouselEditor v-model="model.carousel.items" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -113,9 +123,13 @@ import VariantPicker from '@/layout-builder/config/parts/VariantPicker.vue'
 import MediaCarouselEditor from '@/layout-builder/config/parts/MediaCarouselEditor.vue'
 import {
   TOP_CONTAINER_VARIANTS,
+  TOP_CONTAINER_VISUAL_MODE,
   createDefaultTopContainerProps,
   getTopContainerVariant,
+  resolveTopContainerVisualMode,
 } from '@shared/layout/topContainer'
+
+const VISUAL_MODE = TOP_CONTAINER_VISUAL_MODE
 
 const model = defineModel({ type: Object, required: true })
 const activeTab = ref('content')
@@ -136,6 +150,9 @@ function ensureModelShape(value) {
   if (!value.brand) value.brand = defaults.brand
   if (!value.carousel) value.carousel = defaults.carousel
   if (!Array.isArray(value.carousel.items)) value.carousel.items = []
+  if (!value.visualMode) {
+    value.visualMode = resolveTopContainerVisualMode(value)
+  }
 
   // 保持扁平字段与 background.image 同步（保存/源码兼容）
   value.backgroundImage = value.background.image || ''
@@ -166,6 +183,16 @@ const layoutMode = computed({
     model.value.occupySpace = mode !== 'overlay'
   },
 })
+
+const visualMode = computed({
+  get: () => model.value.visualMode || resolveTopContainerVisualMode(model.value),
+  set: (mode) => {
+    model.value.visualMode = mode
+  },
+})
+
+const isBackgroundMode = computed(() => visualMode.value === VISUAL_MODE.BACKGROUND)
+const isCarouselMode = computed(() => visualMode.value === VISUAL_MODE.CAROUSEL)
 </script>
 
 <style scoped lang="scss">

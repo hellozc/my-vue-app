@@ -1,12 +1,12 @@
 <template>
   <div class="header-config">
     <el-alert
-      v-if="resolvedPreview.autoImmersive"
-      type="info"
+      v-if="model.enabled !== false && autoModeHint"
+      :type="resolvedPreview.isImmersive ? 'info' : 'warning'"
       :closable="false"
       show-icon
       class="header-config__tip"
-      title="已检测到沉浸顶部容器，将自动使用透明头部叠在头图上"
+      :title="autoModeHint"
     />
 
     <el-form label-width="96px" size="small">
@@ -52,26 +52,30 @@
           <el-switch v-model="model.safeAreaInset" />
         </el-form-item>
 
-        <el-divider content-position="left">标准模式样式</el-divider>
+        <template v-if="showStandardStyles">
+          <el-divider content-position="left">{{ standardStyleTitle }}</el-divider>
 
-        <el-form-item label="背景色">
-          <el-color-picker v-model="model.background" show-alpha />
-        </el-form-item>
-        <el-form-item label="文字颜色">
-          <el-color-picker v-model="model.color" />
-        </el-form-item>
+          <el-form-item label="背景色">
+            <el-color-picker v-model="model.background" show-alpha />
+          </el-form-item>
+          <el-form-item label="文字颜色">
+            <el-color-picker v-model="model.color" />
+          </el-form-item>
+        </template>
 
-        <el-divider content-position="left">沉浸模式样式</el-divider>
+        <template v-if="showImmersiveStyles">
+          <el-divider content-position="left">{{ immersiveStyleTitle }}</el-divider>
 
-        <el-form-item label="背景">
-          <el-input v-model="model.immersive.background" placeholder="transparent" />
-        </el-form-item>
-        <el-form-item label="文字颜色">
-          <el-color-picker v-model="model.immersive.color" />
-        </el-form-item>
-        <el-form-item label="与头图融合">
-          <el-switch v-model="model.immersive.blendWithTopContainer" />
-        </el-form-item>
+          <el-form-item label="背景">
+            <el-input v-model="model.immersive.background" placeholder="transparent" />
+          </el-form-item>
+          <el-form-item label="文字颜色">
+            <el-color-picker v-model="model.immersive.color" />
+          </el-form-item>
+          <el-form-item label="与头图融合">
+            <el-switch v-model="model.immersive.blendWithTopContainer" />
+          </el-form-item>
+        </template>
 
         <el-divider content-position="left">右侧操作</el-divider>
 
@@ -130,6 +134,28 @@ const resolvedPreview = computed(() =>
     layoutName: props.layoutName,
   })
 )
+
+/** 当前实际生效为沉浸头（含自动判定结果） */
+const showImmersiveStyles = computed(() => resolvedPreview.value.isImmersive)
+const showStandardStyles = computed(() => !resolvedPreview.value.isImmersive)
+
+const standardStyleTitle = computed(() => {
+  if (model.value.mode === 'auto') return '标准模式样式（自动 · 当前生效）'
+  return '标准模式样式'
+})
+
+const immersiveStyleTitle = computed(() => {
+  if (model.value.mode === 'auto') return '沉浸模式样式（自动 · 当前生效）'
+  return '沉浸模式样式'
+})
+
+const autoModeHint = computed(() => {
+  if (model.value.mode !== 'auto') return ''
+  if (resolvedPreview.value.autoImmersive) {
+    return '已检测到沉浸顶部容器，将自动使用透明头部叠在头图上'
+  }
+  return '当前自动判定为标准头部。透明头需将顶部容器置于首位，并选「沉浸叠加（不占空间）」'
+})
 
 watch(
   model,

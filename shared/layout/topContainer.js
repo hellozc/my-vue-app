@@ -25,6 +25,26 @@ const LEGACY_VARIANT_MAP = {
   2: 'compact-strip',
 }
 
+/** 顶部视觉：静态背景与轮播互斥，避免叠层互相覆盖 */
+export const TOP_CONTAINER_VISUAL_MODE = {
+  BACKGROUND: 'background',
+  CAROUSEL: 'carousel',
+}
+
+export function resolveTopContainerVisualMode(raw = {}) {
+  const mode = raw.visualMode
+  if (
+    mode === TOP_CONTAINER_VISUAL_MODE.BACKGROUND ||
+    mode === TOP_CONTAINER_VISUAL_MODE.CAROUSEL
+  ) {
+    return mode
+  }
+  const items = raw.carousel?.items ?? []
+  return items.length > 0
+    ? TOP_CONTAINER_VISUAL_MODE.CAROUSEL
+    : TOP_CONTAINER_VISUAL_MODE.BACKGROUND
+}
+
 function normalizeDisplayText(value) {
   if (value == null) return ''
   return String(value).trim()
@@ -94,6 +114,7 @@ export function createDefaultTopContainerProps(overrides = {}) {
     image: overrides.background?.image ?? overrides.backgroundImage ?? '',
   }
   return {
+    visualMode: overrides.visualMode ?? TOP_CONTAINER_VISUAL_MODE.BACKGROUND,
     variant: variant.key,
     styleVariant: overrides.styleVariant,
     occupySpace: overrides.occupySpace ?? variant.defaultOccupySpace,
@@ -150,8 +171,11 @@ export function resolveTopContainerProps(raw = {}) {
     image: raw.background?.image ?? raw.backgroundImage ?? '',
   }
 
+  const visualMode = resolveTopContainerVisualMode(raw)
+
   return {
     ...raw,
+    visualMode,
     variant: variantKey,
     styleVariant: raw.styleVariant,
     occupySpace: raw.occupySpace ?? variant.defaultOccupySpace,

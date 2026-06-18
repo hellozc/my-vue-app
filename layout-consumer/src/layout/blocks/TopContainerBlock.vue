@@ -15,11 +15,11 @@
     />
 
     <view class="top-container__content" :style="contentStyle">
-      <view v-if="!carouselItems.length && !showBackground" class="top-container__empty">
-        <text>请配置背景图或添加轮播</text>
+      <view v-if="showEmpty" class="top-container__empty">
+        <text>{{ emptyHint }}</text>
       </view>
       <swiper
-        v-else-if="carouselItems.length"
+        v-else-if="isCarouselMode && carouselItems.length"
         class="top-container__swiper"
         :style="{ height: `${resolved.carouselHeight}px` }"
         :autoplay="resolved.carousel.autoplay !== false"
@@ -46,6 +46,11 @@
           </AppLink>
         </swiper-item>
       </swiper>
+      <view
+        v-else-if="isBackgroundMode && showBackground"
+        class="top-container__static-hero"
+        :style="{ height: `${resolved.carouselHeight}px` }"
+      />
     </view>
 
     <view v-if="showBrand" class="top-container__brand" :style="brandStyle">
@@ -71,7 +76,7 @@
 <script setup lang="ts">
 import { computed, inject, type Ref } from 'vue'
 import AppLink from '@/layout/components/AppLink.vue'
-import { resolveTopContainerProps, hasTopContainerBrandContent } from '@shared/layout/topContainer'
+import { resolveTopContainerProps, hasTopContainerBrandContent, TOP_CONTAINER_VISUAL_MODE } from '@shared/layout/topContainer'
 import { resolveMediaUrl } from '@/utils/media'
 
 interface CarouselItem {
@@ -118,11 +123,29 @@ const props = withDefaults(
 
 const resolved = computed(() => resolveTopContainerProps(props))
 const isOverlay = computed(() => resolved.value.occupySpace === false)
+const isCarouselMode = computed(
+  () => resolved.value.visualMode === TOP_CONTAINER_VISUAL_MODE.CAROUSEL
+)
+const isBackgroundMode = computed(
+  () => resolved.value.visualMode === TOP_CONTAINER_VISUAL_MODE.BACKGROUND
+)
 const carouselItems = computed(() => resolved.value.carousel.items ?? [])
 const backgroundImageUrl = computed(() => resolveMediaUrl(resolved.value.background.image))
 const showBackground = computed(
-  () => resolved.value.background.show !== false && Boolean(backgroundImageUrl.value)
+  () =>
+    isBackgroundMode.value &&
+    resolved.value.background.show !== false &&
+    Boolean(backgroundImageUrl.value)
 )
+const showEmpty = computed(
+  () =>
+    (isBackgroundMode.value && !showBackground.value) ||
+    (isCarouselMode.value && !carouselItems.value.length)
+)
+const emptyHint = computed(() => {
+  if (isCarouselMode.value) return '请添加轮播图'
+  return '请上传顶部背景图'
+})
 const showBrand = computed(() => {
   const { brand, variantMeta } = resolved.value
   return (
@@ -197,6 +220,10 @@ function slideStyle(item: CarouselItem) {
 .top-container__content {
   position: relative;
   z-index: 1;
+}
+
+.top-container__static-hero {
+  width: 100%;
 }
 
 .top-container__empty {

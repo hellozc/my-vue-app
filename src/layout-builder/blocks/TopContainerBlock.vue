@@ -15,13 +15,22 @@
     />
 
     <div class="top-container__content" :style="contentStyle">
-      <div v-if="!carouselItems.length && !showBackground" class="lb-block__empty">
+      <div v-if="showEmpty" class="lb-block__empty">
         <el-icon><Picture /></el-icon>
-        <span>请配置背景图或在「内容配置」添加轮播</span>
+        <span>{{ emptyHint }}</span>
       </div>
-      <el-carousel
-        v-else-if="carouselItems.length"
-        :height="`${resolved.carouselHeight}px`"
+      <template v-else-if="isCarouselMode">
+        <div
+          v-if="!carouselItems.length"
+          class="lb-block__empty lb-block__empty--hero"
+          :style="{ height: `${resolved.carouselHeight}px` }"
+        >
+          <el-icon><Picture /></el-icon>
+          <span>请在「内容配置」添加轮播图</span>
+        </div>
+        <el-carousel
+          v-else
+          :height="`${resolved.carouselHeight}px`"
         :interval="resolved.carousel.interval"
         :autoplay="resolved.carousel.autoplay !== false"
         :loop="resolved.carousel.loop !== false"
@@ -47,6 +56,12 @@
           </AppLink>
         </el-carousel-item>
       </el-carousel>
+      </template>
+      <div
+        v-else-if="isBackgroundMode && showBackground"
+        class="top-container__static-hero"
+        :style="{ height: `${resolved.carouselHeight}px` }"
+      />
     </div>
 
     <div v-if="showBrand" class="top-container__brand">
@@ -74,7 +89,7 @@
 import { computed } from 'vue'
 import { Picture } from '@element-plus/icons-vue'
 import { AppLink } from '@/components/link'
-import { resolveTopContainerProps, hasTopContainerBrandContent } from '@shared/layout/topContainer'
+import { resolveTopContainerProps, hasTopContainerBrandContent, TOP_CONTAINER_VISUAL_MODE } from '@shared/layout/topContainer'
 import { resolveMediaUrl } from '@/utils/media'
 
 const props = defineProps({
@@ -90,11 +105,29 @@ const props = defineProps({
 
 const resolved = computed(() => resolveTopContainerProps(props))
 const isOverlay = computed(() => resolved.value.occupySpace === false)
+const isCarouselMode = computed(
+  () => resolved.value.visualMode === TOP_CONTAINER_VISUAL_MODE.CAROUSEL
+)
+const isBackgroundMode = computed(
+  () => resolved.value.visualMode === TOP_CONTAINER_VISUAL_MODE.BACKGROUND
+)
 const carouselItems = computed(() => resolved.value.carousel.items ?? [])
 const backgroundImageUrl = computed(() => resolveMediaUrl(resolved.value.background.image))
 const showBackground = computed(
-  () => resolved.value.background.show !== false && Boolean(backgroundImageUrl.value)
+  () =>
+    isBackgroundMode.value &&
+    resolved.value.background.show !== false &&
+    Boolean(backgroundImageUrl.value)
 )
+const showEmpty = computed(
+  () =>
+    (isBackgroundMode.value && !showBackground.value) ||
+    (isCarouselMode.value && !carouselItems.value.length)
+)
+const emptyHint = computed(() => {
+  if (isCarouselMode.value) return '请在「内容配置」添加轮播图'
+  return '请在「内容配置」上传顶部背景图'
+})
 const showBrand = computed(() => {
   const { brand, variantMeta } = resolved.value
   return (
@@ -156,6 +189,10 @@ function slideStyle(item) {
 .top-container__content {
   position: relative;
   z-index: 1;
+}
+
+.top-container__static-hero {
+  width: 100%;
 }
 
 .top-container--immersive .top-container__brand {
