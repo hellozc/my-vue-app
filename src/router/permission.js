@@ -1,4 +1,4 @@
-import router from './index'
+import router from '@/router/index'
 
 const whiteList = ['/login']
 let isReady = false

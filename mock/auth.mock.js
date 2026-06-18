@@ -1,6 +1,6 @@
 import { defineMock } from 'vite-plugin-mock-dev-server'
-import { hashPassword, toPublicUser, users } from './data/users.js'
-import { tokenStore } from './data/tokenStore.js'
+import { hashPassword, toPublicUser, users } from '@mock/data/users.js'
+import { tokenStore } from '@mock/data/tokenStore.js'
 import { randomUUID } from 'crypto'
 
 const parseToken = (authHeader = '') =>

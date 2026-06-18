@@ -1,4 +1,4 @@
-import http from './request'
+import http from '@/api/request'
 
 export function getMenuTree() {
   return http.get('/menu/tree')

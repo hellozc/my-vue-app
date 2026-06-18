@@ -58,7 +58,7 @@ git push origin main
 
 ```powershell
 $env:VITE_USE_MOCK="false"
-$env:VITE_API_BASE_URL="http://localhost:8081/api"
+$env:VITE_API_BASE_URL="http://localhost:8080/api"
 npm run build
 npm run preview
 ```
@@ -66,7 +66,7 @@ npm run preview
 **macOS / Linux：**
 
 ```bash
-VITE_USE_MOCK=false VITE_API_BASE_URL=http://localhost:8081/api npm run build
+VITE_USE_MOCK=false VITE_API_BASE_URL=http://localhost:8080/api npm run build
 npm run preview
 ```
 

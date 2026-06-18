@@ -98,7 +98,7 @@ npm run dev:api
 1. MySQL 已启动，且已执行 `npm run server:db:init`
 2. `server/.env` 中数据库账号密码正确
 3. `.env.integration` 中 `VITE_USE_MOCK=false`
-4. `.env.integration` 中 `VITE_API_TARGET` 与 `server/.env` 的 `PORT` 一致（当前默认 `8081`）
+4. `.env.integration` 中 `VITE_API_TARGET` 与 `server/.env` 的 `PORT` 一致（默认 `8080`）
 5. 后台已启动且无端口冲突
 
 **验证接口是否正常**
@@ -172,8 +172,8 @@ npm run server:dev
 
 或改用其他端口：
 
-1. `server/.env` → `PORT=8081`
-2. `.env.integration` → `VITE_API_TARGET=http://localhost:8081`
+1. `server/.env` → `PORT=8080`
+2. `.env.integration` → `VITE_API_TARGET=http://localhost:8080`
 3. 重启前后端
 
 ---

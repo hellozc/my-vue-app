@@ -14,7 +14,8 @@
     "server:install": "npm install --prefix server",
     "server:dev": "npm run dev --prefix server",
     "server:start": "npm run start --prefix server",
-    "server:db:init": "npm run db:init --prefix server"
+    "server:db:init": "npm run db:init --prefix server",
+    "server:db:seed:demo-home": "npm run db:seed:demo-home --prefix server"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -23,8 +24,10 @@
     "element-plus": "^2.14.2",
     "pinia": "^3.0.4",
     "sass": "^1.101.0",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.34",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.1.0",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.6",

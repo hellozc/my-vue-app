@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { config } from './config/index.js'
 import { testConnection } from './db/pool.js'
-import { ensureDatabaseSchema } from './db/initSchema.js'
+import { ensureDatabaseSchema, ensureSchemaPatches } from './db/initSchema.js'
 import routes from './routes/index.js'
 
 const app = express()
@@ -10,6 +10,11 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+app.use(config.apiPrefix, (req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
@@ -45,6 +50,7 @@ async function start() {
       if (initialized) {
         console.log('[DB] 启动时自动初始化已完成')
       }
+      await ensureSchemaPatches()
     }
   } catch (err) {
     console.error('[DB] MySQL 连接失败:', err.message || err.code || String(err))

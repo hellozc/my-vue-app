@@ -6,8 +6,8 @@ import {
   roleState,
   roles,
   setRoleMenuIds,
-} from './data/roles.js'
-import { users } from './data/users.js'
+} from '@mock/data/roles.js'
+import { users } from '@mock/data/users.js'
 
 export default defineMock([
   {

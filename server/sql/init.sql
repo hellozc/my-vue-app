@@ -47,3 +47,45 @@ CREATE TABLE IF NOT EXISTS sys_role_menu (
   PRIMARY KEY (role_id, menu_id),
   KEY idx_menu_id (menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色菜单权限表';
+
+CREATE TABLE IF NOT EXISTS sys_layout (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '布局编码，展示端按 code 拉取',
+  name VARCHAR(100) NOT NULL COMMENT '布局名称',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  status ENUM('draft', 'published') NOT NULL DEFAULT 'draft' COMMENT '状态',
+  version INT NOT NULL DEFAULT 1 COMMENT '版本号',
+  schema_json JSON NOT NULL COMMENT '布局 Schema JSON',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='页面布局配置表';
+
+CREATE TABLE IF NOT EXISTS sys_link_category (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '分类编码',
+  name VARCHAR(100) NOT NULL COMMENT '分类名称',
+  sort INT NOT NULL DEFAULT 1 COMMENT '排序',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='链接分类表';
+
+CREATE TABLE IF NOT EXISTS sys_link (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '链接编码，布局中引用此编码',
+  name VARCHAR(100) NOT NULL COMMENT '链接名称',
+  category_code VARCHAR(50) NOT NULL DEFAULT 'general' COMMENT '链接分类编码',
+  type ENUM('internal', 'external') NOT NULL DEFAULT 'internal' COMMENT 'internal站内 external站外',
+  target VARCHAR(500) NOT NULL COMMENT '站内路由或站外 URL',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  click_count INT NOT NULL DEFAULT 0 COMMENT '点击次数',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code),
+  KEY idx_status (status),
+  KEY idx_category_code (category_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一跳转链接表';

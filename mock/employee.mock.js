@@ -4,9 +4,9 @@ import {
   toPublicUser,
   userState,
   users,
-} from './data/users.js'
-import { getRoleById } from './data/roles.js'
-import { tokenStore } from './data/tokenStore.js'
+} from '@mock/data/users.js'
+import { getRoleById } from '@mock/data/roles.js'
+import { tokenStore } from '@mock/data/tokenStore.js'
 
 const parseToken = (authHeader = '') =>
   authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''

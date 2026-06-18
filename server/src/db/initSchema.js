@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import mysql from 'mysql2/promise'
 import { config } from '../config/index.js'
 import { hashPassword } from '../utils/auth.js'
+import { ensureLayoutTable, seedDemoHomeLayout } from './seedDemoHomeLayout.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -21,6 +22,8 @@ const seedMenus = [
   { id: 11, parentId: 10, path: '/system/menu', name: 'menuManage', label: '菜单管理', icon: 'Menu', component: 'system/MenuManage', sort: 1, type: 'menu' },
   { id: 12, parentId: 10, path: '/system/employee', name: 'employeeManage', label: '员工管理', icon: 'UserFilled', component: 'system/EmployeeManage', sort: 2, type: 'menu' },
   { id: 13, parentId: 10, path: '/system/role', name: 'roleManage', label: '角色管理', icon: 'Key', component: 'system/RoleManage', sort: 3, type: 'menu' },
+  { id: 14, parentId: 10, path: '/system/layout', name: 'layoutManage', label: '布局管理', icon: 'Grid', component: 'system/LayoutManage', sort: 4, type: 'menu' },
+  { id: 15, parentId: 10, path: '/system/link', name: 'linkManage', label: '链接管理', icon: 'Link', component: 'system/LinkManage', sort: 5, type: 'menu' },
 ]
 
 const seedRoles = [
@@ -56,7 +59,74 @@ const patchMenus = [
     component: 'system/RoleManage',
     sort: 3,
   },
+  {
+    parentPath: '/system',
+    path: '/system/layout',
+    name: 'layoutManage',
+    label: '布局管理',
+    icon: 'Grid',
+    component: 'system/LayoutManage',
+    sort: 4,
+  },
+  {
+    parentPath: '/system',
+    path: '/system/link',
+    name: 'linkManage',
+    label: '链接管理',
+    icon: 'Link',
+    component: 'system/LinkManage',
+    sort: 5,
+  },
 ]
+
+const seedLinkCategories = [
+  { code: 'general', name: '通用', sort: 99, description: '默认分类' },
+  { code: 'navigation', name: '主导航', sort: 1, description: '首页、Tabbar 等主导航入口' },
+  { code: 'content', name: '内容资讯', sort: 2, description: '列表、资讯、详情等内容页' },
+  { code: 'marketing', name: '营销活动', sort: 3, description: '活动页、推广页' },
+  { code: 'external', name: '站外推广', sort: 4, description: '站外 H5、官网等' },
+]
+
+const seedLinks = [
+  { code: 'home', name: '首页', categoryCode: 'navigation', type: 'internal', target: '/home', description: '应用首页' },
+  { code: 'mall', name: '商品管理', categoryCode: 'navigation', type: 'internal', target: '/mall', description: '商品管理页' },
+  { code: 'user', name: '用户管理', categoryCode: 'navigation', type: 'internal', target: '/user', description: '用户管理页' },
+  { code: 'community-news', name: '社区资讯', categoryCode: 'content', type: 'internal', target: '/page1', description: '社区资讯列表' },
+  { code: 'official-site', name: '官网', categoryCode: 'external', type: 'external', target: 'https://example.com', description: '站外官网示例' },
+]
+
+const CREATE_LINK_CATEGORY_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS sys_link_category (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '分类编码',
+  name VARCHAR(100) NOT NULL COMMENT '分类名称',
+  sort INT NOT NULL DEFAULT 1 COMMENT '排序',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='链接分类表'
+`
+
+const CREATE_LINK_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS sys_link (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL COMMENT '链接编码，布局中引用此编码',
+  name VARCHAR(100) NOT NULL COMMENT '链接名称',
+  category_code VARCHAR(50) NOT NULL DEFAULT 'general' COMMENT '链接分类编码',
+  type ENUM('internal', 'external') NOT NULL DEFAULT 'internal' COMMENT 'internal站内 external站外',
+  target VARCHAR(500) NOT NULL COMMENT '站内路由或站外 URL',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  click_count INT NOT NULL DEFAULT 0 COMMENT '点击次数',
+  description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_code (code),
+  KEY idx_status (status),
+  KEY idx_category_code (category_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一跳转链接表'
+`
 
 function createDbConnection(options = {}) {
   return mysql.createConnection({
@@ -128,6 +198,90 @@ async function seedRoleMenuPermissions(conn) {
         [Number(roleId), menuId]
       )
     }
+  }
+}
+
+async function ensureLinkCategoryTable(conn) {
+  await conn.query(CREATE_LINK_CATEGORY_TABLE_SQL)
+}
+
+async function ensureLinkTable(conn) {
+  await conn.query(CREATE_LINK_TABLE_SQL)
+  const [cols] = await conn.query("SHOW COLUMNS FROM sys_link LIKE 'category_code'")
+  if (cols.length === 0) {
+    await conn.query(
+      "ALTER TABLE sys_link ADD COLUMN category_code VARCHAR(50) NOT NULL DEFAULT 'general' COMMENT '链接分类编码' AFTER name"
+    )
+    await conn.query('ALTER TABLE sys_link ADD KEY idx_category_code (category_code)')
+    console.log('[DB] 已添加 sys_link.category_code 字段')
+  }
+}
+
+async function seedDefaultLinkCategories(conn) {
+  const [countRows] = await conn.query('SELECT COUNT(*) AS total FROM sys_link_category')
+  if (countRows[0].total > 0) return
+
+  for (const item of seedLinkCategories) {
+    await conn.query(
+      `INSERT INTO sys_link_category (code, name, sort, status, description)
+       VALUES (?, ?, ?, 'enabled', ?)`,
+      [item.code, item.name, item.sort, item.description ?? '']
+    )
+  }
+  console.log('[DB] 初始链接分类数据已导入')
+}
+
+async function seedDefaultLinks(conn) {
+  const [countRows] = await conn.query('SELECT COUNT(*) AS total FROM sys_link')
+  if (countRows[0].total > 0) return
+
+  for (const item of seedLinks) {
+    await conn.query(
+      `INSERT INTO sys_link (code, name, category_code, type, target, status, description)
+       VALUES (?, ?, ?, ?, ?, 'enabled', ?)`,
+      [
+        item.code,
+        item.name,
+        item.categoryCode ?? 'general',
+        item.type,
+        item.target,
+        item.description ?? '',
+      ]
+    )
+  }
+  console.log('[DB] 初始链接数据已导入')
+}
+
+async function ensureLinkMenuForAdmin(conn) {
+  for (const menu of patchMenus.filter((item) => item.path === '/system/link')) {
+    const menuId = await ensureMenuByPath(conn, menu)
+    if (!menuId) return
+
+    const [adminRole] = await conn.query('SELECT id FROM sys_role WHERE code = ?', ['admin'])
+    if (adminRole.length > 0) {
+      await conn.query(
+        'INSERT IGNORE INTO sys_role_menu (role_id, menu_id) VALUES (?, ?)',
+        [adminRole[0].id, menuId]
+      )
+    }
+  }
+}
+
+export async function ensureSchemaPatches() {
+  const conn = await createDbConnection()
+  try {
+    await conn.query(`USE \`${config.db.database}\``)
+    await ensureLinkCategoryTable(conn)
+    await seedDefaultLinkCategories(conn)
+    await ensureLinkTable(conn)
+    await seedDefaultLinks(conn)
+    await ensureLinkMenuForAdmin(conn)
+    await ensureLayoutTable(conn)
+    await seedDemoHomeLayout(conn)
+  } catch (err) {
+    console.warn('[DB] 结构补丁执行失败:', err.message)
+  } finally {
+    await conn.end()
   }
 }
 
@@ -211,13 +365,20 @@ export async function ensureDatabaseSchema({ force = false } = {}) {
           ]
         )
       }
-      await rootConn.query('ALTER TABLE sys_menu AUTO_INCREMENT = 14')
+      await rootConn.query('ALTER TABLE sys_menu AUTO_INCREMENT = 16')
       console.log('[DB] 初始菜单数据已导入')
     } else {
       for (const menu of patchMenus) {
         await ensureMenuByPath(rootConn, menu)
       }
     }
+
+    await ensureLinkCategoryTable(rootConn)
+    await seedDefaultLinkCategories(rootConn)
+    await ensureLinkTable(rootConn)
+    await seedDefaultLinks(rootConn)
+    await ensureLayoutTable(rootConn)
+    await seedDemoHomeLayout(rootConn)
 
     const [roleMenuCountRows] = await rootConn.query('SELECT COUNT(*) AS total FROM sys_role_menu')
     if (roleMenuCountRows[0].total === 0) {

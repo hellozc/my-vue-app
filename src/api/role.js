@@ -1,4 +1,4 @@
-import http from './request'
+import http from '@/api/request'
 
 export function getRoleList() {
   return http.get('/role/list')

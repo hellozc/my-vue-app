@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const Main = () => import('@/views/Main.vue')
 const Login = () => import('@/views/Login.vue')
+const LayoutEditorPage = () => import('@/views/system/LayoutEditorPage.vue')
 
 const routes = [
   {
@@ -15,7 +16,14 @@ const routes = [
     name: 'Main',
     component: Main,
     redirect: '/home',
-    children: [],
+    children: [
+      {
+        path: '/system/layout/editor/:id?',
+        name: 'layoutEditor',
+        component: LayoutEditorPage,
+        meta: { title: '布局编辑器' },
+      },
+    ],
   },
 ]
 

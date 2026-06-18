@@ -1,8 +1,8 @@
 import { defineMock } from 'vite-plugin-mock-dev-server'
-import { tokenStore } from './data/tokenStore.js'
-import { users } from './data/users.js'
-import { getRoleMenuIds, isAdminRole } from './data/roles.js'
-import { buildMenuTree, filterMenusByIds } from './data/menuUtils.js'
+import { tokenStore } from '@mock/data/tokenStore.js'
+import { users } from '@mock/data/users.js'
+import { getRoleMenuIds, isAdminRole } from '@mock/data/roles.js'
+import { buildMenuTree, filterMenusByIds } from '@mock/data/menuUtils.js'
 
 /** Mock 菜单内存数据 */
 let menus = [
@@ -19,9 +19,11 @@ let menus = [
   { id: 11, parentId: 10, path: '/system/menu', name: 'menuManage', label: '菜单管理', icon: 'Menu', component: 'system/MenuManage', sort: 1, type: 'menu' },
   { id: 12, parentId: 10, path: '/system/employee', name: 'employeeManage', label: '员工管理', icon: 'UserFilled', component: 'system/EmployeeManage', sort: 2, type: 'menu' },
   { id: 13, parentId: 10, path: '/system/role', name: 'roleManage', label: '角色管理', icon: 'Key', component: 'system/RoleManage', sort: 3, type: 'menu' },
+  { id: 14, parentId: 10, path: '/system/layout', name: 'layoutManage', label: '布局管理', icon: 'Grid', component: 'system/LayoutManage', sort: 4, type: 'menu' },
+  { id: 15, parentId: 10, path: '/system/link', name: 'linkManage', label: '链接管理', icon: 'Link', component: 'system/LinkManage', sort: 5, type: 'menu' },
 ]
 
-let nextId = 14
+let nextId = 16
 
 const parseToken = (authHeader = '') =>
   authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''

@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import MenuItem from './MenuItem.vue'
+import MenuItem from '@/components/MenuItem.vue'
 
 defineProps({
   item: {

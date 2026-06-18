@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': resolve(__dirname, 'src'),
         '@components': resolve(__dirname, 'src/components'),
+        '@mock': resolve(__dirname, 'mock'),
       },
     },
     server: {

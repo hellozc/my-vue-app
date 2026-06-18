@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/app.js",
     "start": "node src/app.js",
-    "db:init": "node scripts/init-db.js"
+    "db:init": "node scripts/init-db.js",
+    "db:seed:demo-home": "node src/scripts/seedDemoHome.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
