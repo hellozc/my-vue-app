@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true,
       proxy: useMock
         ? undefined
         : {

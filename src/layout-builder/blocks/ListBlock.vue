@@ -77,8 +77,9 @@ const blockStyle = computed(() => ({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
+  min-height: 32px;
+  padding: 4px 0 8px;
+  box-sizing: border-box;
 }
 
 .list-block__header-left {
@@ -86,6 +87,7 @@ const blockStyle = computed(() => ({
   align-items: center;
   gap: 8px;
   min-width: 0;
+  height: 16px;
 }
 
 .list-block__accent {
@@ -99,13 +101,14 @@ const blockStyle = computed(() => ({
   font-size: 16px;
   font-weight: 600;
   color: #303133;
-  line-height: 1.3;
+  line-height: 16px;
 }
 
 .list-block__more {
   flex-shrink: 0;
   font-size: 13px;
   color: #909399;
+  line-height: 16px;
 }
 
 .list-block__item {

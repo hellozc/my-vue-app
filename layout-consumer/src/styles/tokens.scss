@@ -1,4 +1,5 @@
-// layout-consumer 设计 token（组件内可用 @use '@/styles/tokens' as *;）
+// layout-consumer 设计 token（750 设计稿，组件内可用 @use '@/styles/tokens' as *;）
+// 静态样式优先使用 rpx；与系统对齐的尺寸（如状态栏）可用 px，见 unit.ts
 
 $lc-color-primary: #6366f1;
 $lc-color-success: #10b981;

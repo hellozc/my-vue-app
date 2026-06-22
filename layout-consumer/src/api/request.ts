@@ -9,7 +9,7 @@ interface ApiResponse<T> {
 export async function request<T>(options: {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  data?: unknown
+  data?: UniApp.RequestOptions['data']
 }): Promise<T> {
   const { url, method = 'GET', data } = options
 

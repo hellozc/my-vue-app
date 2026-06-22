@@ -9,6 +9,7 @@
       </view>
       <AppLink
         v-if="header.showMore"
+        class="list-block__more-link"
         :link-code="header.moreLinkCode"
         :legacy-link="header.moreLink"
       >
@@ -122,8 +123,9 @@ const blockStyle = computed(() => ({ padding: props.padding }))
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16rpx;
-  padding-bottom: 16rpx;
+  min-height: 48rpx;
+  padding: 8rpx 0 16rpx;
+  box-sizing: border-box;
 }
 
 .list-block__header-left {
@@ -132,6 +134,7 @@ const blockStyle = computed(() => ({ padding: props.padding }))
   align-items: center;
   flex: 1;
   min-width: 0;
+  height: 32rpx;
 }
 
 .list-block__accent {
@@ -143,8 +146,12 @@ const blockStyle = computed(() => ({ padding: props.padding }))
 }
 
 .list-block__title-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   flex: 1;
   min-width: 0;
+  height: 32rpx;
   overflow: hidden;
 }
 
@@ -152,17 +159,24 @@ const blockStyle = computed(() => ({ padding: props.padding }))
   font-size: 32rpx;
   font-weight: 600;
   color: #303133;
-  line-height: 1.3;
+  line-height: 32rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.list-block__more {
+.list-block__more-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   flex-shrink: 0;
+  height: 32rpx;
+}
+
+.list-block__more {
   font-size: 26rpx;
   color: #909399;
-  line-height: 1.3;
+  line-height: 32rpx;
 }
 
 .list-block__item {

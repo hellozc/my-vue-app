@@ -1,5 +1,7 @@
 export const LAYOUT_SCHEMA_VERSION = 1
 
+import type { HeaderShowBack } from '@/composables/useHeaderBack'
+
 export type LinkType = 'internal' | 'external'
 
 export interface LinkRecord {
@@ -38,7 +40,7 @@ export interface HeaderConfig {
   mode?: 'auto' | 'native' | 'immersive'
   navigationStyle?: 'auto' | 'default' | 'custom'
   title?: string
-  showBack?: boolean | 'auto'
+  showBack?: HeaderShowBack
   background?: string
   color?: string
   height?: number

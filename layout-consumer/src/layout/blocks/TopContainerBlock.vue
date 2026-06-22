@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, type Ref } from 'vue'
+import { computed, inject, type CSSProperties, type Ref } from 'vue'
 import AppLink from '@/layout/components/AppLink.vue'
 import { resolveTopContainerProps, hasTopContainerBrandContent, TOP_CONTAINER_VISUAL_MODE } from '@shared/layout/topContainer'
 import { resolveMediaUrl } from '@/utils/media'
@@ -175,24 +175,25 @@ const brandStyle = computed(() => {
   return { top: 'calc(env(safe-area-inset-top) + 20rpx)' }
 })
 
-const containerStyle = computed(() => ({
-  background: resolved.value.containerBg,
-  ...(isOverlay.value
-    ? {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1,
-      }
-    : {}),
-}))
+const containerStyle = computed((): CSSProperties => {
+  const style: CSSProperties = {
+    background: resolved.value.containerBg,
+  }
+  if (isOverlay.value) {
+    style.position = 'absolute'
+    style.top = 0
+    style.left = 0
+    style.right = 0
+    style.zIndex = 1
+  }
+  return style
+})
 
-const contentStyle = computed(() => ({
+const contentStyle = computed((): CSSProperties => ({
   minHeight: `${resolved.value.carouselHeight}px`,
 }))
 
-function slideStyle(item: CarouselItem) {
+function slideStyle(item: CarouselItem): CSSProperties {
   if (item.image) return {}
   return { background: item.bgColor || 'transparent' }
 }

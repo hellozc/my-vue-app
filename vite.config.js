@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true,
       proxy: {
         '/api': useMock
           ? { target: 'http://localhost:5173' }

@@ -26,12 +26,13 @@ function createDefaultTabbar(): TabbarConfig {
 export function normalizeTabbar(raw?: Partial<TabbarConfig>): TabbarConfig {
   const defaults = createDefaultTabbar()
   if (!raw) return defaults
+  const rawItems = raw.props?.items
   return {
     enabled: raw.enabled ?? defaults.enabled,
     props: {
       ...defaults.props,
       ...(raw.props || {}),
-      items: Array.isArray(raw.props?.items) ? raw.props.items : defaults.props.items,
+      items: Array.isArray(rawItems) ? rawItems : defaults.props.items,
     },
   }
 }

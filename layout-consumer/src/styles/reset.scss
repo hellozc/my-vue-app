@@ -1,4 +1,5 @@
 @use './tokens' as *;
+@use './mixins' as *;
 
 page {
   box-sizing: border-box;
@@ -51,16 +52,11 @@ textarea {
 }
 
 .text-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @include text-ellipsis;
 }
 
 .text-ellipsis-2 {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  @include text-ellipsis-lines(2);
 }
 
 /* #ifdef H5 */
@@ -72,6 +68,7 @@ uni-page,
 uni-page-wrapper,
 uni-page-body {
   min-height: 100%;
+  width: 100%;
 }
 
 html {

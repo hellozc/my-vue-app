@@ -53,10 +53,13 @@ async function handleTap() {
 
 <style scoped>
 .app-link {
-  display: block;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .app-link--block {
+  display: flex;
   width: 100%;
 }
 

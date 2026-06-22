@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type CSSProperties } from 'vue'
 import AppLink from '@/layout/components/AppLink.vue'
 import { getIconChar } from '@/utils/iconMap'
 import { pxStringToRpx, pxToRpx } from '@/utils/unit'
@@ -122,7 +122,7 @@ const totalCells = computed(() => props.columns * props.rows)
 const displayItems = computed(() => props.items.slice(0, totalCells.value))
 const emptySlots = computed(() => Math.max(0, totalCells.value - displayItems.value.length))
 
-const blockStyle = computed(() => ({
+const blockStyle = computed((): CSSProperties => ({
   position: props.offsetY < 0 ? 'relative' : undefined,
   zIndex: props.offsetY < 0 ? 2 : undefined,
   marginTop: pxToRpx(props.offsetY),
@@ -134,7 +134,7 @@ const blockStyle = computed(() => ({
   boxShadow: props.showShadow ? '0 8rpx 24rpx rgba(15, 23, 42, 0.06)' : 'none',
 }))
 
-const cellStyle = computed(() => {
+const cellStyle = computed((): CSSProperties => {
   const columnWidth = 100 / props.columns
   const gapX = pxToRpx(props.gap / 2)
   return {
@@ -146,7 +146,7 @@ const cellStyle = computed(() => {
   }
 })
 
-const iconStyle = computed(() => ({
+const iconStyle = computed((): CSSProperties => ({
   width: pxToRpx(props.iconWidth),
   height: pxToRpx(props.iconHeight),
   borderRadius: pxToRpx(props.borderRadius),

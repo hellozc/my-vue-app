@@ -1,5 +1,9 @@
 <template>
-  <view class="tabbar-block" :style="shellStyle">
+  <view
+    class="tabbar-block"
+    :class="{ 'tabbar-block--safe': safeAreaInset }"
+    :style="shellStyle"
+  >
     <view class="tabbar-block__content" :style="contentStyle">
       <AppLink
         v-for="(item, index) in items"
@@ -8,24 +12,18 @@
         :link-code="item.linkCode"
         :legacy-link="item.path"
       >
-        <text class="tabbar-block__icon" :style="itemStyle(index)">{{ getIconChar(item.icon, '•') }}</text>
-        <text class="tabbar-block__label" :style="itemStyle(index)">{{ item.label }}</text>
+        <text class="tabbar-block__icon" :style="iconStyle(index)">{{ getIconChar(item.icon, '•') }}</text>
+        <text class="tabbar-block__label" :style="labelStyle(index)">{{ item.label }}</text>
       </AppLink>
     </view>
-    <view
-      v-if="safeAreaInset"
-      class="tabbar-block__safe-area"
-      :style="safeAreaStyle"
-    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type CSSProperties } from 'vue'
 import AppLink from '@/layout/components/AppLink.vue'
 import { getIconChar } from '@/utils/iconMap'
 import { pxToRpx } from '@/utils/unit'
-import { useSafeAreaBottom } from '@/composables/useSafeAreaBottom'
 
 interface TabbarItem {
   label: string
@@ -61,28 +59,25 @@ const props = withDefaults(
   }
 )
 
-const safeAreaBottom = useSafeAreaBottom()
-
-const shellStyle = computed(() => ({
+const shellStyle = computed((): CSSProperties => ({
   background: props.background,
   borderTop: props.showBorder ? '1rpx solid #ebeef5' : 'none',
 }))
 
-const contentStyle = computed(() => ({
+const contentStyle = computed((): CSSProperties => ({
   height: pxToRpx(props.height),
 }))
 
-const safeAreaStyle = computed(() => {
-  if (safeAreaBottom.value > 0) {
-    return { height: pxToRpx(safeAreaBottom.value) }
-  }
-  return {}
-})
-
-function itemStyle(index: number) {
-  const color = index === props.activeIndex ? props.activeColor : props.inactiveColor
+function iconStyle(index: number): CSSProperties {
   return {
-    color,
+    color: index === props.activeIndex ? props.activeColor : props.inactiveColor,
+    fontSize: pxToRpx(props.iconSize),
+  }
+}
+
+function labelStyle(index: number): CSSProperties {
+  return {
+    color: index === props.activeIndex ? props.activeColor : props.inactiveColor,
     fontSize: pxToRpx(props.fontSize),
   }
 }
@@ -93,13 +88,24 @@ function itemStyle(index: number) {
   display: flex;
   flex-direction: column;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.tabbar-block--safe {
+  padding-bottom: max(
+    constant(safe-area-inset-bottom),
+    env(safe-area-inset-bottom),
+    var(--lc-safe-area-bottom, 0px)
+  );
 }
 
 .tabbar-block__content {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
   width: 100%;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .tabbar-block__item {
@@ -108,22 +114,23 @@ function itemStyle(index: number) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4rpx;
+  min-width: 0;
+  padding: 0 8rpx;
+  box-sizing: border-box;
 }
 
 .tabbar-block__icon {
-  line-height: 1.2;
-  font-size: 40rpx;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .tabbar-block__label {
-  margin-top: 4rpx;
   line-height: 1.2;
-}
-
-.tabbar-block__safe-area {
-  width: 100%;
-  flex-shrink: 0;
-  height: constant(safe-area-inset-bottom);
-  height: env(safe-area-inset-bottom);
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

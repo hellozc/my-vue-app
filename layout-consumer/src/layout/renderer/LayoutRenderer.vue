@@ -3,7 +3,7 @@
     <AppHeader
       v-if="showCustomHeader"
       :title="header.title"
-      :show-back="header.showBack"
+      :show-back="headerShowBack"
       :background="header.resolvedBackground"
       :color="header.resolvedColor"
       :height="header.height"
@@ -52,6 +52,13 @@ import { useSafeAreaTop } from '@/composables/useSafeAreaTop'
 import { resolveHeaderConfig } from '@shared/layout/header'
 import { resolveTopContainerProps } from '@shared/layout/topContainer'
 import { pxToRpx } from '@/utils/unit'
+import type { HeaderShowBack } from '@/composables/useHeaderBack'
+
+function toHeaderShowBack(value: unknown): HeaderShowBack {
+  if (value === true || value === false) return value
+  if (value === 'auto' || value === 'true' || value === 'false') return value
+  return 'auto'
+}
 
 const props = withDefaults(
   defineProps<{
@@ -86,6 +93,8 @@ const header = computed(() =>
 )
 
 const showCustomHeader = computed(() => header.value.shouldRenderChrome)
+
+const headerShowBack = computed(() => toHeaderShowBack(header.value.showBack))
 
 const headerTotalHeightPx = computed(() => {
   if (!showCustomHeader.value) return 0
@@ -150,11 +159,11 @@ const bodyStyle = computed(() => {
   }
 
   if (safeAreaBottom.value > 0) {
-    styles.paddingBottom = `calc(${tabbarHeight} + ${pxToRpx(safeAreaBottom.value)})`
+    styles.paddingBottom = pxToRpx(height + safeAreaBottom.value)
     return styles
   }
 
-  styles.paddingBottom = `calc(${tabbarHeight} + env(safe-area-inset-bottom))`
+  styles.paddingBottom = `calc(${tabbarHeight} + max(env(safe-area-inset-bottom), var(--lc-safe-area-bottom, 0px)))`
   return styles
 })
 

@@ -66,6 +66,36 @@ npm run dev
 2. `manifest.json` 已关闭 url 校验（开发环境）
 3. 真机调试时将 API 改为可访问的内网/公网地址
 
+### 局域网 IP 访问（手机 / 其他设备）
+
+开发服务器已配置 `server.host: true`，启动后终端会显示 `Network: http://192.168.x.x:端口`。
+
+**管理端（仓库根目录）：**
+
+```bash
+npm run dev:api
+# 手机浏览器访问 http://你的电脑IP:5173
+```
+
+**C 端 H5：**
+
+```bash
+cd layout-consumer
+npm run dev:h5:api
+# 手机浏览器访问终端里 Network 地址（端口以终端输出为准）
+```
+
+H5 走 Vite 代理时，`VITE_API_TARGET` 保持 `http://localhost:8080` 即可（代理在本机转发到后端）。
+
+**小程序 / App 真机**无法走 H5 代理，需复制 `.env.integration.local.example` 为 `.env.integration.local`，把 API 改成局域网 IP：
+
+```env
+VITE_API_BASE_URL=http://192.168.1.100:8080/api
+VITE_API_TARGET=http://192.168.1.100:8080
+```
+
+Windows 查 IP：`ipconfig` → 无线/以太网 IPv4。若无法访问，检查防火墙是否放行对应端口。
+
 ## 项目结构
 
 ```
@@ -88,6 +118,29 @@ src/
 - 点击统计：`POST /api/link/track/:code`
 
 Schema 结构与管理端 `layout-builder` 保持一致。
+
+## 样式与自适应
+
+### 单位策略（方案 A）
+
+| 场景 | 用法 |
+|------|------|
+| 组件 `<style>` 静态尺寸 | **rpx**（750 设计稿） |
+| 管理端 schema 下发的 px | `pxToRpx()` / `pxStringToRpx()` |
+| 状态栏、与系统对齐 | **px**（如 `$lc-header-height: 44px`） |
+| H5 布局 | **全宽铺满**，不套 max-width 容器 |
+
+不引入 rem / `lib-flexible`：UniApp 在 H5 会将 rpx 编译为自适应单位，小程序原生支持 rpx，避免二次缩放。
+
+### 浏览器前缀
+
+- 构建：`postcss.config.cjs` + `autoprefixer`（读取 `package.json` → `browserslist`）
+- 业务样式无需手写 `-webkit-transform` 等；`line-clamp`、`safe-area` 等见 `src/styles/_mixins.scss` 与 `reset.scss`
+
+### 新增布局组件时
+
+- 复用现有 block：只改 schema，C 端无需发版
+- 新 block 类型：在 `layout/registry.ts` 增加渲染组件，静态样式用 rpx，动态 props 用 `unit.ts` 换算
 
 ## Railway 部署（H5）
 

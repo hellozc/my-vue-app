@@ -1,0 +1,28 @@
+// 通用样式 mixin（autoprefixer 无法处理的属性仍在此手写前缀）
+
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-ellipsis-lines($lines: 2) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+}
+
+@mixin flex-row-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+@mixin safe-area-padding-top($extra: 0rpx) {
+  padding-top: calc(#{$extra} + env(safe-area-inset-top));
+}
+
+@mixin safe-area-padding-bottom($extra: 0rpx) {
+  padding-bottom: calc(#{$extra} + env(safe-area-inset-bottom));
+}
