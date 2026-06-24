@@ -11,6 +11,7 @@ import ListConfig from '@/layout-builder/config/ListConfig.vue'
 import { COMPONENT_SCOPE } from '@/layout-builder/constants'
 import { createDefaultTopContainerProps } from '@shared/layout/topContainer'
 import { createDefaultGridProps } from '@shared/layout/grid'
+import { createDefaultListProps } from '@shared/layout/list'
 
 /** 页面主体组件分类（左侧组件库，仅 body 可拖拽） */
 export const LAYOUT_CATEGORIES = [
@@ -99,24 +100,12 @@ export const layoutComponentRegistry = {
       return {
         id: generateId(),
         type: 'list',
-        props: {
-          padding: '12px 16px',
-          showDivider: true,
-          showArrow: true,
-          header: {
-            show: true,
-            title: '模块标题',
-            accentColor: '#e53935',
-            showMore: true,
-            moreText: '更多>',
-            moreLinkCode: '',
-            moreLink: '',
-          },
+        props: createDefaultListProps({
           items: [
             { title: '列表项 1', desc: '描述文案', icon: 'Document', image: '', linkCode: '', link: '' },
             { title: '列表项 2', desc: '描述文案', icon: 'Document', image: '', linkCode: '', link: '' },
           ],
-        },
+        }),
       }
     },
     block: markRaw(ListBlock),

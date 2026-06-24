@@ -16,11 +16,16 @@
       </AppLink>
     </div>
 
+    <div v-if="isDynamic" class="list-block__dynamic-tip">
+      <el-icon><Connection /></el-icon>
+      <span>动态数据源{{ sourceCode ? `：${sourceCode}` : '（未设置标识）' }}，以下为预览内容</span>
+    </div>
+
     <AppLink
-      v-for="(item, index) in items"
+      v-for="(item, index) in displayItems"
       :key="index"
       class="list-block__item"
-      :class="{ 'is-divided': showDivider && index < items.length - 1 }"
+      :class="{ 'is-divided': showDivider && index < displayItems.length - 1 }"
       :link-code="item.linkCode"
       :legacy-link="item.link"
       tag="div"
@@ -35,13 +40,21 @@
       </div>
       <el-icon v-if="showArrow" class="list-block__arrow"><ArrowRight /></el-icon>
     </AppLink>
+
+    <div v-if="paginationHint" class="list-block__pagination-hint">{{ paginationHint }}</div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, Connection } from '@element-plus/icons-vue'
 import { AppLink } from '@/components/link'
+import {
+  LIST_DATA_SOURCE,
+  LIST_PAGINATION_MODE,
+  createDefaultListHeader,
+  normalizeListPagination,
+} from '@shared/layout/list'
 
 const props = defineProps({
   padding: { type: String, default: '12px 16px' },
@@ -49,19 +62,30 @@ const props = defineProps({
   showArrow: { type: Boolean, default: true },
   header: { type: Object, default: () => ({}) },
   items: { type: Array, default: () => [] },
+  dataSource: { type: String, default: LIST_DATA_SOURCE.STATIC },
+  sourceCode: { type: String, default: '' },
+  pagination: { type: Object, default: () => ({}) },
 })
 
-const defaultHeader = {
-  show: true,
-  title: '社区资讯',
-  accentColor: '#e53935',
-  showMore: true,
-  moreText: '更多>',
-  moreLinkCode: 'community-news',
-  moreLink: '',
-}
+const header = computed(() => ({ ...createDefaultListHeader(), ...props.header }))
+const pagination = computed(() => normalizeListPagination(props.pagination))
+const isDynamic = computed(() => props.dataSource === LIST_DATA_SOURCE.DYNAMIC)
 
-const header = computed(() => ({ ...defaultHeader, ...props.header }))
+const displayItems = computed(() => {
+  if (!pagination.value.enabled) return props.items
+  return props.items.slice(0, pagination.value.pageSize)
+})
+
+const paginationHint = computed(() => {
+  if (!pagination.value.enabled) return ''
+  const { pageSize, mode } = pagination.value
+  const modeLabel = {
+    [LIST_PAGINATION_MODE.AUTO]: '上拉自动加载',
+    [LIST_PAGINATION_MODE.LOAD_MORE]: '加载更多按钮',
+    [LIST_PAGINATION_MODE.PAGER]: '分页器',
+  }[mode] || '上拉自动加载'
+  return `每页 ${pageSize} 条 · ${modeLabel}`
+})
 
 const blockStyle = computed(() => ({
   padding: props.padding,
@@ -164,5 +188,26 @@ const blockStyle = computed(() => ({
 .list-block__arrow {
   color: #c0c4cc;
   flex-shrink: 0;
+}
+
+.list-block__dynamic-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #6366f1;
+  background: #eef0ff;
+  border-radius: 6px;
+}
+
+.list-block__pagination-hint {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #ebeef5;
+  text-align: center;
+  font-size: 12px;
+  color: #c0c4cc;
 }
 </style>

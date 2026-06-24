@@ -36,6 +36,69 @@
         </el-form>
       </el-tab-pane>
 
+      <el-tab-pane label="数据/分页" name="data">
+        <el-form label-width="96px" size="small">
+          <div class="config-section">
+            <div class="config-section__title">数据来源</div>
+            <el-form-item label="来源类型">
+              <el-radio-group v-model="model.dataSource">
+                <el-radio-button :value="LIST_DATA_SOURCE.STATIC">静态内容</el-radio-button>
+                <el-radio-button :value="LIST_DATA_SOURCE.DYNAMIC">动态接口</el-radio-button>
+              </el-radio-group>
+            </el-form-item>
+            <template v-if="model.dataSource === LIST_DATA_SOURCE.DYNAMIC">
+              <el-form-item label="数据源">
+                <el-select
+                  v-model="model.sourceCode"
+                  :loading="sourceLoading"
+                  placeholder="请选择数据源"
+                  style="width: 100%"
+                >
+                  <el-option
+                    v-for="opt in sourceOptions"
+                    :key="opt.code"
+                    :label="opt.name"
+                    :value="opt.code"
+                  />
+                </el-select>
+              </el-form-item>
+              <div v-if="sourceError" class="config-hint config-hint--error">
+                数据源加载失败：{{ sourceError }}
+              </div>
+              <div v-else-if="!sourceLoading && sourceOptions.length === 0" class="config-hint">
+                后端暂未注册可用数据源，请联系开发在 server 端登记。
+              </div>
+              <div v-else class="config-hint">
+                动态模式下列表数据由所选数据源分页返回；下方「列表项」仅作为接口异常时的兜底/预览内容。
+              </div>
+            </template>
+            <div v-else class="config-hint">静态模式下展示「内容配置」中维护的列表项。</div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-section__title">分页</div>
+            <el-form-item label="启用分页">
+              <el-switch v-model="model.pagination.enabled" />
+            </el-form-item>
+            <template v-if="model.pagination.enabled">
+              <el-form-item label="每页条数">
+                <el-input-number v-model="model.pagination.pageSize" :min="1" :max="100" :step="1" />
+              </el-form-item>
+              <el-form-item label="加载方式">
+                <el-select v-model="model.pagination.mode">
+                  <el-option label="上拉自动加载" :value="LIST_PAGINATION_MODE.AUTO" />
+                  <el-option label="「加载更多」按钮" :value="LIST_PAGINATION_MODE.LOAD_MORE" />
+                  <el-option label="分页器（上一页/下一页）" :value="LIST_PAGINATION_MODE.PAGER" />
+                </el-select>
+              </el-form-item>
+              <div class="config-hint">
+                上拉自动加载在 H5 触底自动加载，小程序端自动降级为「加载更多」按钮。
+              </div>
+            </template>
+          </div>
+        </el-form>
+      </el-tab-pane>
+
       <el-tab-pane label="内容配置" name="content">
         <template v-if="model.header.show">
           <el-form label-width="96px" size="small">
@@ -85,22 +148,24 @@
 import { ref, watch } from 'vue'
 import { LinkPicker } from '@/components/link'
 import { ImagePicker } from '@/components/media'
+import {
+  LIST_DATA_SOURCE,
+  LIST_PAGINATION_MODE,
+  createDefaultListHeader,
+  createDefaultListPagination,
+} from '@shared/layout/list'
 
 const model = defineModel({ type: Object, required: true })
 const activeTab = ref('style')
 
-function ensureHeader() {
-  if (!model.value.header) {
-    model.value.header = {
-      show: true,
-      title: '社区资讯',
-      accentColor: '#e53935',
-      showMore: true,
-      moreText: '更多>',
-      moreLinkCode: 'community-news',
-      moreLink: '',
-    }
-  }
+function ensureDefaults() {
+  const m = model.value
+  if (!m) return
+  if (!m.header) m.header = createDefaultListHeader()
+  if (!m.dataSource) m.dataSource = LIST_DATA_SOURCE.STATIC
+  if (typeof m.sourceCode !== 'string') m.sourceCode = ''
+  if (!m.pagination) m.pagination = createDefaultListPagination()
+  if (!Array.isArray(m.items)) m.items = []
 }
 
 function addItem() {
@@ -118,7 +183,7 @@ function removeItem(index) {
   model.value.items.splice(index, 1)
 }
 
-watch(() => model.value, ensureHeader, { immediate: true, deep: true })
+watch(() => model.value, ensureDefaults, { immediate: true, deep: true })
 </script>
 
 <style scoped lang="scss">
@@ -131,6 +196,13 @@ watch(() => model.value, ensureHeader, { immediate: true, deep: true })
   font-weight: 600;
   margin-bottom: 10px;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.config-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .color-row {

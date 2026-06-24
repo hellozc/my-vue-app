@@ -1,31 +1,32 @@
-{
-  "pages": [
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "布局展示"
-      }
-    },
-    {
-      "path": "pages/layout/index",
-      "style": {
-        "navigationBarTitleText": "布局页面",
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "black",
-        "navigationBarBackgroundColor": "#FFFFFF"
-      }
-    },
-    {
-      "path": "pages/webview/index",
-      "style": {
-        "navigationBarTitleText": "网页"
-      }
-    }
-  ],
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "布局展示",
-    "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F5F7FA"
-  }
-}
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "布局展示"
+      }
+    },
+    {
+      "path": "pages/layout/index",
+      "style": {
+        "navigationBarTitleText": "布局页面",
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "black",
+        "navigationBarBackgroundColor": "#FFFFFF",
+        "onReachBottomDistance": 120
+      }
+    },
+    {
+      "path": "pages/webview/index",
+      "style": {
+        "navigationBarTitleText": "网页"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "布局展示",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F7FA"
+  }
+}

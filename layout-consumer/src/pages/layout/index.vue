@@ -1,4 +1,7 @@
 <template>
+  <!-- #ifdef MP -->
+  <page-meta page-style="overflow: hidden; height: 100%;" />
+  <!-- #endif -->
   <view class="page">
     <view v-if="loading" class="state">
       <text>布局加载中...</text>
@@ -18,13 +21,48 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app'
-import { nextTick, ref, watch } from 'vue'
+import { onLoad, onPageScroll, onReachBottom } from '@dcloudio/uni-app'
+import { nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { getLayoutByCode } from '@/api/layout'
 import LayoutRenderer from '@/layout/renderer/LayoutRenderer.vue'
 import type { LayoutSchema } from '@/layout/types'
 import { appConfig } from '@/config/env'
 import { resolveHeaderConfig } from '@shared/layout/header'
+import { createLayoutPageEventBus, LAYOUT_PAGE_EVENT_KEY } from '@/composables/useLayoutReachBottom'
+
+const pageEventBus = createLayoutPageEventBus()
+provide(LAYOUT_PAGE_EVENT_KEY, pageEventBus)
+
+onReachBottom(() => {
+  pageEventBus.emitReachBottom()
+})
+
+onPageScroll(() => {
+  pageEventBus.emitScroll()
+})
+
+// H5 自定义导航下 onPageScroll 可能不稳定，用 window 滚动兜底
+// #ifdef H5
+const REACH_BOTTOM_OFFSET = 120
+
+function handleH5Scroll() {
+  pageEventBus.emitScroll()
+  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
+  const viewHeight = window.innerHeight || document.documentElement.clientHeight
+  const scrollHeight = document.documentElement.scrollHeight
+  if (scrollTop + viewHeight >= scrollHeight - REACH_BOTTOM_OFFSET) {
+    pageEventBus.emitReachBottom()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleH5Scroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleH5Scroll)
+})
+// #endif
 
 const loading = ref(true)
 const error = ref('')
@@ -88,6 +126,14 @@ function reload() {
 .page {
   min-height: 100vh;
 }
+
+/* #ifdef MP */
+.page {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+/* #endif */
 
 .state {
   min-height: 60vh;

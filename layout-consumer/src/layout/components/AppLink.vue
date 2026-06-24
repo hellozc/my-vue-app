@@ -4,6 +4,7 @@
     :class="{
       'app-link--clickable': clickable,
       'app-link--block': block,
+      'app-link--stack': stack,
     }"
     @tap="handleTap"
   >
@@ -29,12 +30,15 @@ const props = withDefaults(
     disabled?: boolean
     /** 占满父容器宽度（列表行等场景） */
     block?: boolean
+    /** 纵向排列图标+文字（Tabbar 等场景） */
+    stack?: boolean
   }>(),
   {
     linkCode: '',
     legacyLink: '',
     disabled: false,
     block: false,
+    stack: false,
   }
 )
 
@@ -61,6 +65,13 @@ async function handleTap() {
 .app-link--block {
   display: flex;
   width: 100%;
+}
+
+.app-link--stack {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 .app-link--clickable {

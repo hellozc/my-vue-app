@@ -42,7 +42,10 @@ function measureVisualViewportBottomGap(): number {
 
 function readUniSafeAreaBottom(): number {
   try {
-    const info = uni.getSystemInfoSync()
+    const getWindowInfo = (uni as unknown as { getWindowInfo?: () => UniApp.GetWindowInfoResult }).getWindowInfo
+    const info =
+      typeof getWindowInfo === 'function' ? getWindowInfo() : uni.getSystemInfoSync()
+
     if (info.safeAreaInsets?.bottom) {
       return info.safeAreaInsets.bottom
     }
@@ -50,7 +53,7 @@ function readUniSafeAreaBottom(): number {
       return Math.max(0, info.screenHeight - info.safeArea.bottom)
     }
   } catch {
-    /* H5 / 部分端可能无 uni API */
+    /* 部分端可能无 uni API */
   }
   return 0
 }
@@ -85,6 +88,9 @@ export function useSafeAreaBottom() {
     applySafeAreaCssVar(inset)
   }
 
+  // 小程序 / App 无 document，setup 阶段即同步读取，避免 Tabbar 首屏贴底
+  refresh()
+
   onMounted(() => {
     refresh()
 
@@ -93,10 +99,6 @@ export function useSafeAreaBottom() {
       window.visualViewport.addEventListener('scroll', refresh)
     }
   })
-
-  if (typeof document !== 'undefined' && document.body) {
-    refresh()
-  }
 
   return bottom
 }

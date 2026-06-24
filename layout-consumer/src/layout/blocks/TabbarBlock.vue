@@ -1,7 +1,7 @@
 <template>
   <view
     class="tabbar-block"
-    :class="{ 'tabbar-block--safe': safeAreaInset }"
+    :class="{ 'tabbar-block--safe': useSafeAreaPadding && safeAreaBottomPx <= 0 }"
     :style="shellStyle"
   >
     <view class="tabbar-block__content" :style="contentStyle">
@@ -9,6 +9,8 @@
         v-for="(item, index) in items"
         :key="index"
         class="tabbar-block__item"
+        block
+        stack
         :link-code="item.linkCode"
         :legacy-link="item.path"
       >
@@ -22,6 +24,7 @@
 <script setup lang="ts">
 import { computed, type CSSProperties } from 'vue'
 import AppLink from '@/layout/components/AppLink.vue'
+import { useSafeAreaBottom } from '@/composables/useSafeAreaBottom'
 import { getIconChar } from '@/utils/iconMap'
 import { pxToRpx } from '@/utils/unit'
 
@@ -59,10 +62,20 @@ const props = withDefaults(
   }
 )
 
-const shellStyle = computed((): CSSProperties => ({
-  background: props.background,
-  borderTop: props.showBorder ? '1rpx solid #ebeef5' : 'none',
-}))
+const safeAreaBottomPx = useSafeAreaBottom()
+const useSafeAreaPadding = computed(() => props.safeAreaInset !== false)
+
+const shellStyle = computed((): CSSProperties => {
+  const style: CSSProperties = {
+    background: props.background,
+    borderTop: props.showBorder ? '1rpx solid #ebeef5' : 'none',
+  }
+  // 小程序端 env(safe-area-inset-bottom) 不可靠，用 uni 实测值做 padding
+  if (useSafeAreaPadding.value && safeAreaBottomPx.value > 0) {
+    style.paddingBottom = pxToRpx(safeAreaBottomPx.value)
+  }
+  return style
+})
 
 const contentStyle = computed((): CSSProperties => ({
   height: pxToRpx(props.height),
@@ -102,7 +115,7 @@ function labelStyle(index: number): CSSProperties {
 .tabbar-block__content {
   display: flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: center;
   width: 100%;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -110,22 +123,22 @@ function labelStyle(index: number): CSSProperties {
 
 .tabbar-block__item {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4rpx;
+  width: 0;
+  height: 100%;
   min-width: 0;
   padding: 0 8rpx;
   box-sizing: border-box;
 }
 
 .tabbar-block__icon {
+  display: block;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .tabbar-block__label {
+  display: block;
+  margin-top: 4rpx;
   line-height: 1.2;
   max-width: 100%;
   text-align: center;

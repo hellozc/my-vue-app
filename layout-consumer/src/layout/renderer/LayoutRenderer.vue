@@ -13,6 +13,36 @@
       fixed
     />
 
+    <!-- #ifdef MP -->
+    <scroll-view
+      class="layout-shell__scroll"
+      scroll-y
+      :style="scrollViewStyle"
+      :lower-threshold="120"
+      :enable-back-to-top="true"
+      @scroll="handlePageScroll"
+      @scrolltolower="handlePageReachBottom"
+    >
+      <view class="layout-shell__body" :style="bodyStyle">
+        <template v-for="item in components" :key="item.id">
+          <view
+            v-if="isOverlayTopContainer(item)"
+            class="layout-shell__overlay-host"
+            :style="getOverlayHostStyle(item)"
+          >
+            <LayoutBlockRenderer :type="item.type" :block-props="item.props" />
+          </view>
+          <LayoutBlockRenderer
+            v-else
+            :type="item.type"
+            :block-props="item.props"
+          />
+        </template>
+      </view>
+    </scroll-view>
+    <!-- #endif -->
+
+    <!-- #ifndef MP -->
     <view class="layout-shell__body" :style="bodyStyle">
       <template v-for="item in components" :key="item.id">
         <view
@@ -29,6 +59,7 @@
         />
       </template>
     </view>
+    <!-- #endif -->
 
     <TabbarBlock
       v-if="tabbar.enabled"
@@ -39,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
+import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue'
 import type { LayoutSchema } from '@/layout/types'
 import { normalizeLayoutSchema } from '@/layout/normalize'
 import LayoutBlockRenderer from '@/layout/renderer/LayoutBlockRenderer.vue'
@@ -49,10 +80,19 @@ import { getLinkOptions } from '@/api/link'
 import { buildLinkRegistry } from '@/utils/link'
 import { useSafeAreaBottom } from '@/composables/useSafeAreaBottom'
 import { useSafeAreaTop } from '@/composables/useSafeAreaTop'
+import { LAYOUT_PAGE_EVENT_KEY } from '@/composables/useLayoutReachBottom'
 import { resolveHeaderConfig } from '@shared/layout/header'
 import { resolveTopContainerProps } from '@shared/layout/topContainer'
 import { pxToRpx } from '@/utils/unit'
 import type { HeaderShowBack } from '@/composables/useHeaderBack'
+
+function readWindowHeight() {
+  const getWindowInfo = (uni as unknown as { getWindowInfo?: () => { windowHeight: number } }).getWindowInfo
+  if (typeof getWindowInfo === 'function') {
+    return getWindowInfo().windowHeight
+  }
+  return uni.getSystemInfoSync().windowHeight
+}
 
 function toHeaderShowBack(value: unknown): HeaderShowBack {
   if (value === true || value === false) return value
@@ -77,6 +117,24 @@ const props = withDefaults(
 const linkRegistry = reactive<Record<string, import('@/layout/types').LinkRecord>>({})
 const safeAreaBottom = useSafeAreaBottom()
 const { topInset } = useSafeAreaTop()
+const pageEventBus = inject(LAYOUT_PAGE_EVENT_KEY, null)
+const windowHeight = ref(0)
+
+// #ifdef MP
+windowHeight.value = readWindowHeight()
+// #endif
+
+const scrollViewStyle = computed(() => ({
+  height: windowHeight.value > 0 ? `${windowHeight.value}px` : '100vh',
+}))
+
+function handlePageScroll() {
+  pageEventBus?.emitScroll()
+}
+
+function handlePageReachBottom() {
+  pageEventBus?.emitReachBottom()
+}
 
 provide('linkRegistry', linkRegistry)
 provide('layoutInteractive', ref(props.interactive))
@@ -196,11 +254,27 @@ defineExpose({
 
 <style scoped>
 .layout-shell {
-  min-height: 100vh;
+  width: 100%;
 }
 
-.layout-shell__body {
+/* #ifdef MP */
+.layout-shell {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout-shell__scroll {
+  width: 100%;
+}
+/* #endif */
+
+/* #ifndef MP */
+.layout-shell {
   min-height: 100vh;
+}
+/* #endif */
+
+.layout-shell__body {
   position: relative;
 }
 

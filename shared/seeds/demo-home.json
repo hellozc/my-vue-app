@@ -108,6 +108,8 @@
           "padding": "12px 16px",
           "showDivider": true,
           "showArrow": true,
+          "dataSource": "static",
+          "pagination": { "enabled": true, "pageSize": 1, "mode": "auto" },
           "header": {
             "show": true,
             "title": "社区资讯",
@@ -123,6 +125,28 @@
             { "title": "便民服务：家电维修预约", "desc": "官方合作商户，持证上岗", "icon": "Tools", "image": "", "linkCode": "", "link": "" },
             { "title": "邻里互助：闲置物品交换", "desc": "闲置交换、宠物寄养、顺风车", "icon": "ChatLineRound", "image": "", "linkCode": "", "link": "" }
           ]
+        }
+      },
+      {
+        "id": "cmp_dynamic_news",
+        "type": "list",
+        "props": {
+          "padding": "12px 16px",
+          "showDivider": true,
+          "showArrow": true,
+          "dataSource": "dynamic",
+          "sourceCode": "news",
+          "pagination": { "enabled": true, "pageSize": 5, "mode": "auto" },
+          "header": {
+            "show": true,
+            "title": "最新资讯（动态分页）",
+            "accentColor": "#6366f1",
+            "showMore": false,
+            "moreText": "更多>",
+            "moreLinkCode": "",
+            "moreLink": ""
+          },
+          "items": []
         }
       }
     ],

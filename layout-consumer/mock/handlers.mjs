@@ -22,6 +22,38 @@ const DEMO_LAYOUT = {
   updatedAt: '2026-06-17 10:00:00',
 }
 
+const LIST_SOURCES = {
+  news: Array.from({ length: 28 }, (_, i) => {
+    const topics = ['社区公告', '物业通知', '便民服务', '活动预告', '安全提示', '邻里互助']
+    const topic = topics[i % topics.length]
+    const no = i + 1
+    return {
+      id: `news-${no}`,
+      title: `${topic} · 第 ${no} 条资讯`,
+      desc: `这是第 ${no} 条${topic}的摘要内容，点击查看详情。`,
+      icon: 'Document',
+      image: '',
+      linkCode: '',
+      link: '',
+    }
+  }),
+}
+
+function paginateList(all, query) {
+  const list = Array.isArray(all) ? all : []
+  const pageSize = Math.min(100, Math.max(1, Math.round(Number(query.get('pageSize')) || 5)))
+  const page = Math.max(1, Math.round(Number(query.get('page')) || 1))
+  const start = (page - 1) * pageSize
+  const end = start + pageSize
+  return {
+    items: list.slice(start, end),
+    page,
+    pageSize,
+    total: list.length,
+    hasMore: end < list.length,
+  }
+}
+
 function sendJson(res, payload) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   res.end(JSON.stringify(payload))
@@ -61,6 +93,18 @@ export function attachDevMock(server) {
 
     if (req.method === 'POST' && url.startsWith('/api/link/track/')) {
       sendJson(res, { code: 200, message: '统计成功', data: { code: url.slice('/api/link/track/'.length) } })
+      return
+    }
+
+    if (req.method === 'GET' && url.startsWith('/api/list/')) {
+      const sourceCode = decodeURIComponent(url.slice('/api/list/'.length))
+      const source = LIST_SOURCES[sourceCode]
+      if (!source) {
+        sendJson(res, { code: 404, message: `未知的数据源: ${sourceCode}`, data: null })
+        return
+      }
+      const query = new URLSearchParams(req.url?.split('?')[1] || '')
+      sendJson(res, { code: 200, message: 'success', data: paginateList(source, query) })
       return
     }
 
