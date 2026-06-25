@@ -396,7 +396,7 @@ async function ensureAdminSystemMenus(conn) {
   }
 }
 
-export async function ensureSchemaPatches() {
+export async function ensureSchemaPatches({ strict = false } = {}) {
   const conn = await createDbConnection()
   try {
     await conn.query(`USE \`${config.db.database}\``)
@@ -416,6 +416,7 @@ export async function ensureSchemaPatches() {
     await ensureAuthConfigTable(conn)
     await seedDefaultAuthConfig(conn)
   } catch (err) {
+    if (strict) throw err
     console.warn('[DB] 结构补丁执行失败:', err.message)
   } finally {
     await conn.end()

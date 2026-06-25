@@ -50,6 +50,7 @@ Table 'railway.sys_user' doesn't exist
 
 - Railway MySQL 插件默认只有空库 **`railway`**，**不会**自动创建 `sys_user`、`sys_menu` 等表。
 - 必须执行一次 `npm run db:init`，或部署带 **启动时自动建表** 的后端代码（见 `server/src/db/initSchema.js`）。
+- **注意：** 后续版本新增的表（如 `app_member`、`app_auth_config`）在 **`ensureSchemaPatches`** 里补全，不在 `sql/init.sql`。`db:init` 与后端启动都会跑这段补丁；若只跑过旧版 `db:init` 或 `railway run` 连错库，会表现为「老表有、新表没有」。
 
 ### 易错认知
 
@@ -307,8 +308,8 @@ VITE_API_BASE_URL=https://my-vue-app-production-41ef.up.railway.app/api
 
 | 文件 | 说明 |
 |------|------|
-| `server/src/db/initSchema.js` | 启动时自动建表逻辑 |
-| `server/scripts/init-db.js` | CLI：`npm run db:init` |
+| `server/src/db/initSchema.js` | 启动时自动建表 + `ensureSchemaPatches` 增量补丁 |
+| `server/scripts/init-db.js` | CLI：`npm run db:init`（建表 + 补丁） |
 | `server/sql/init.sql` | 表结构 |
 | `server/.env.railway.example` | 后端变量示例 |
 | `server/railway.toml` | 后端 Docker 构建配置 |
