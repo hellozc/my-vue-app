@@ -5,6 +5,12 @@ import mysql from 'mysql2/promise'
 import { config } from '../config/index.js'
 import { hashPassword } from '../utils/auth.js'
 import { ensureLayoutTable, seedDemoHomeLayout } from './seedDemoHomeLayout.js'
+import { seedDemoUserLayout } from './seedDemoUserLayout.js'
+import { seedDemoMember } from '../services/memberService.js'
+import {
+  ensureAuthConfigTable,
+  seedDefaultAuthConfig,
+} from '../services/memberAuthConfigService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -87,6 +93,24 @@ const patchMenus = [
     component: 'system/MediaManage',
     sort: 6,
   },
+  {
+    parentPath: '/system',
+    path: '/system/member-auth',
+    name: 'memberAuthConfig',
+    label: 'C端登录配置',
+    icon: 'Unlock',
+    component: 'system/MemberAuthConfig',
+    sort: 7,
+  },
+  {
+    parentPath: '/system',
+    path: '/system/member-sms',
+    name: 'memberSmsInbox',
+    label: '验证码收件箱',
+    icon: 'Message',
+    component: 'system/MemberSmsInbox',
+    sort: 8,
+  },
 ]
 
 const seedLinkCategories = [
@@ -144,6 +168,34 @@ CREATE TABLE IF NOT EXISTS sys_media (
   KEY idx_category_code (category_code),
   KEY idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='图片素材表'
+`
+
+const CREATE_MEMBER_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS app_member (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  nickname VARCHAR(100) NOT NULL DEFAULT '' COMMENT '昵称',
+  avatar VARCHAR(500) DEFAULT NULL COMMENT '头像',
+  phone VARCHAR(20) DEFAULT NULL COMMENT '手机号',
+  status ENUM('enabled', 'disabled') NOT NULL DEFAULT 'enabled' COMMENT '状态',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_phone (phone)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='C端会员表'
+`
+
+const CREATE_MEMBER_AUTH_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS app_member_auth (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  member_id INT NOT NULL COMMENT '会员ID',
+  provider VARCHAR(32) NOT NULL COMMENT '登录方式',
+  identifier VARCHAR(128) NOT NULL COMMENT '标识（账号/手机号/openid）',
+  credential VARCHAR(255) DEFAULT NULL COMMENT '凭证（密码hash等）',
+  extra_json JSON DEFAULT NULL COMMENT '扩展信息',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_provider_identifier (provider, identifier),
+  KEY idx_member_id (member_id),
+  CONSTRAINT fk_member_auth_member FOREIGN KEY (member_id) REFERENCES app_member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='C端会员登录绑定表'
 `
 
 const CREATE_LINK_CATEGORY_TABLE_SQL = `
@@ -303,6 +355,11 @@ async function seedDefaultLinks(conn) {
   console.log('[DB] 初始链接数据已导入')
 }
 
+async function ensureMemberTables(conn) {
+  await conn.query(CREATE_MEMBER_TABLE_SQL)
+  await conn.query(CREATE_MEMBER_AUTH_TABLE_SQL)
+}
+
 async function ensureMediaCategoryTable(conn) {
   await conn.query(CREATE_MEDIA_CATEGORY_TABLE_SQL)
 }
@@ -353,6 +410,11 @@ export async function ensureSchemaPatches() {
     await ensureAdminSystemMenus(conn)
     await ensureLayoutTable(conn)
     await seedDemoHomeLayout(conn)
+    await seedDemoUserLayout(conn)
+    await ensureMemberTables(conn)
+    await seedDemoMember(conn)
+    await ensureAuthConfigTable(conn)
+    await seedDefaultAuthConfig(conn)
   } catch (err) {
     console.warn('[DB] 结构补丁执行失败:', err.message)
   } finally {
@@ -457,6 +519,7 @@ export async function ensureDatabaseSchema({ force = false } = {}) {
     await ensureMediaTable(rootConn)
     await ensureLayoutTable(rootConn)
     await seedDemoHomeLayout(rootConn)
+    await seedDemoUserLayout(rootConn)
 
     const [roleMenuCountRows] = await rootConn.query('SELECT COUNT(*) AS total FROM sys_role_menu')
     if (roleMenuCountRows[0].total === 0) {

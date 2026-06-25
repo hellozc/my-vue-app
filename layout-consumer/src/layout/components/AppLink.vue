@@ -15,6 +15,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useLinkNavigation } from '@/composables/useLinkNavigation'
+import { useLoginGate } from '@/composables/useLoginGate'
 
 defineOptions({
   options: {
@@ -32,6 +33,10 @@ const props = withDefaults(
     block?: boolean
     /** 纵向排列图标+文字（Tabbar 等场景） */
     stack?: boolean
+    /** 点击前需要先登录 */
+    requireLogin?: boolean
+    /** 登录后回跳地址，默认当前页 */
+    loginRedirect?: string
   }>(),
   {
     linkCode: '',
@@ -39,18 +44,29 @@ const props = withDefaults(
     disabled: false,
     block: false,
     stack: false,
+    requireLogin: false,
+    loginRedirect: '',
   }
 )
 
 const { navigate, hasLink } = useLinkNavigation()
+const { ensureLoggedIn } = useLoginGate()
 
 const clickable = computed(() => {
   if (props.disabled) return false
+  if (props.requireLogin) return true
   return hasLink({ linkCode: props.linkCode, legacyLink: props.legacyLink })
 })
 
 async function handleTap() {
-  if (!clickable.value) return
+  if (props.requireLogin && !ensureLoggedIn(props.loginRedirect || undefined)) {
+    return
+  }
+  if (!hasLink({ linkCode: props.linkCode, legacyLink: props.legacyLink })) {
+    if (!props.requireLogin) return
+    return
+  }
+  if (props.disabled) return
   await navigate({ linkCode: props.linkCode, legacyLink: props.legacyLink })
 }
 </script>
@@ -65,6 +81,8 @@ async function handleTap() {
 .app-link--block {
   display: flex;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .app-link--stack {

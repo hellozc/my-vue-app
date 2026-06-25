@@ -195,6 +195,14 @@ const pageStyle = computed(() => {
   }
 })
 
+const tabbarReservePx = computed(() => {
+  if (!tabbar.value.enabled) return 12
+  const height = Number(tabbar.value.props?.height ?? 50)
+  const useSafeArea = tabbar.value.props?.safeAreaInset !== false
+  const safe = useSafeArea ? safeAreaBottom.value : 0
+  return height + safe + 16
+})
+
 const bodyStyle = computed(() => {
   const styles: Record<string, string> = {}
 
@@ -202,26 +210,7 @@ const bodyStyle = computed(() => {
     styles.paddingTop = pxToRpx(headerTotalHeightPx.value)
   }
 
-  if (!tabbar.value.enabled) {
-    styles.paddingBottom = '24rpx'
-    return styles
-  }
-
-  const height = tabbar.value.props?.height ?? 50
-  const useSafeArea = tabbar.value.props?.safeAreaInset !== false
-  const tabbarHeight = pxToRpx(height)
-
-  if (!useSafeArea) {
-    styles.paddingBottom = tabbarHeight
-    return styles
-  }
-
-  if (safeAreaBottom.value > 0) {
-    styles.paddingBottom = pxToRpx(height + safeAreaBottom.value)
-    return styles
-  }
-
-  styles.paddingBottom = `calc(${tabbarHeight} + max(env(safe-area-inset-bottom), var(--lc-safe-area-bottom, 0px)))`
+  styles.paddingBottom = pxToRpx(tabbarReservePx.value)
   return styles
 })
 

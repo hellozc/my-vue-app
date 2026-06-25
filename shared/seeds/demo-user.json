@@ -1,0 +1,121 @@
+{
+  "code": "user",
+  "name": "我的",
+  "description": "C端个人中心示例布局",
+  "status": "published",
+  "version": 1,
+  "schema": {
+    "version": 1,
+    "pageSettings": {
+      "backgroundType": "solid",
+      "backgroundColor": "#f5f7fa",
+      "backgroundImage": ""
+    },
+    "components": [
+      {
+        "id": "cmp_user_card",
+        "type": "userCard",
+        "props": {
+          "padding": "24px 16px",
+          "margin": "12px 12px 0",
+          "background": "#ffffff",
+          "borderRadius": 16,
+          "showStats": true,
+          "tapRequiresLogin": true,
+          "guest": {
+            "title": "点击登录",
+            "subtitle": "登录后享受更多服务",
+            "avatar": ""
+          },
+          "stats": [
+            { "label": "积分", "value": "128", "linkCode": "", "requireLogin": true },
+            { "label": "优惠券", "value": "3", "linkCode": "", "requireLogin": true },
+            { "label": "订单", "value": "2", "linkCode": "", "requireLogin": true }
+          ]
+        }
+      },
+      {
+        "id": "cmp_user_menu_service",
+        "type": "menuGroup",
+        "props": {
+          "margin": "12px 12px 0",
+          "background": "#ffffff",
+          "borderRadius": 16,
+          "showDivider": true,
+          "showArrow": true,
+          "style": "list",
+          "groups": [
+            {
+              "title": "我的服务",
+              "items": [
+                { "label": "我的订单", "icon": "Goods", "desc": "", "requireLogin": true, "linkCode": "", "link": "" },
+                { "label": "我的收藏", "icon": "Star", "desc": "", "requireLogin": true, "linkCode": "", "link": "" },
+                { "label": "收货地址", "icon": "Location", "desc": "", "requireLogin": true, "linkCode": "", "link": "" }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "cmp_user_menu_help",
+        "type": "menuGroup",
+        "props": {
+          "margin": "12px 12px 12px",
+          "background": "#ffffff",
+          "borderRadius": 16,
+          "showDivider": true,
+          "showArrow": true,
+          "style": "list",
+          "groups": [
+            {
+              "title": "更多",
+              "items": [
+                { "label": "帮助中心", "icon": "QuestionFilled", "desc": "", "requireLogin": false, "linkCode": "", "link": "" },
+                { "label": "关于我们", "icon": "InfoFilled", "desc": "", "requireLogin": false, "linkCode": "", "link": "" },
+                { "label": "退出登录", "icon": "SwitchButton", "desc": "", "requireLogin": true, "action": "logout", "linkCode": "", "link": "" }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "chrome": {
+      "tabbar": {
+        "enabled": true,
+        "props": {
+          "height": 50,
+          "background": "#ffffff",
+          "activeColor": "#6366f1",
+          "inactiveColor": "#909399",
+          "showBorder": true,
+          "fontSize": 11,
+          "iconSize": 22,
+          "safeAreaInset": true,
+          "activeIndex": 2,
+          "items": [
+            { "label": "首页", "icon": "House", "linkCode": "home", "path": "/home" },
+            { "label": "社区", "icon": "OfficeBuilding", "linkCode": "community-news", "path": "/page1" },
+            { "label": "我的", "icon": "User", "linkCode": "user", "path": "/user" }
+          ]
+        }
+      },
+      "header": {
+        "enabled": true,
+        "mode": "auto",
+        "navigationStyle": "auto",
+        "title": "我的",
+        "showBack": false,
+        "background": "#ffffff",
+        "color": "#303133",
+        "height": 44,
+        "safeAreaInset": true,
+        "immersive": {
+          "blendWithTopContainer": false,
+          "background": "#ffffff",
+          "color": "#303133"
+        },
+        "rightActions": []
+      }
+    }
+  }
+}

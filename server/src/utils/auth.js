@@ -5,21 +5,43 @@ export function hashPassword(password) {
 }
 
 /** 简易 token 存储（生产环境建议 Redis + JWT） */
-const tokenStore = new Map()
+const adminTokenStore = new Map()
+const memberTokenStore = new Map()
 
 export function createToken(userId) {
   const token = randomUUID()
-  tokenStore.set(token, userId)
+  adminTokenStore.set(token, userId)
   return token
 }
 
 export function getUserIdByToken(token) {
-  if (!token) return null
-  return tokenStore.get(token) ?? null
+  if (!token || token.startsWith('m_')) return null
+  return adminTokenStore.get(token) ?? null
 }
 
 export function removeToken(token) {
-  tokenStore.delete(token)
+  if (!token) return
+  if (token.startsWith('m_')) {
+    memberTokenStore.delete(token)
+    return
+  }
+  adminTokenStore.delete(token)
+}
+
+export function createMemberToken(memberId) {
+  const token = `m_${randomUUID()}`
+  memberTokenStore.set(token, memberId)
+  return token
+}
+
+export function getMemberIdByToken(token) {
+  if (!token?.startsWith('m_')) return null
+  return memberTokenStore.get(token) ?? null
+}
+
+export function removeMemberToken(token) {
+  if (!token) return
+  memberTokenStore.delete(token)
 }
 
 export function parseBearerToken(authHeader = '') {

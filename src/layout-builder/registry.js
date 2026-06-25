@@ -8,16 +8,23 @@ import TopContainerConfig from '@/layout-builder/config/TopContainerConfig.vue'
 import CarouselConfig from '@/layout-builder/config/CarouselConfig.vue'
 import GridConfig from '@/layout-builder/config/GridConfig.vue'
 import ListConfig from '@/layout-builder/config/ListConfig.vue'
+import UserCardConfig from '@/layout-builder/config/UserCardConfig.vue'
+import MenuGroupConfig from '@/layout-builder/config/MenuGroupConfig.vue'
 import { COMPONENT_SCOPE } from '@/layout-builder/constants'
 import { createDefaultTopContainerProps } from '@shared/layout/topContainer'
 import { createDefaultGridProps } from '@shared/layout/grid'
 import { createDefaultListProps } from '@shared/layout/list'
+import { createDefaultUserCardProps } from '@shared/layout/userCard'
+import { createDefaultMenuGroupProps } from '@shared/layout/menuGroup'
+import UserCardBlock from '@/layout-builder/blocks/UserCardBlock.vue'
+import MenuGroupBlock from '@/layout-builder/blocks/MenuGroupBlock.vue'
 
 /** 页面主体组件分类（左侧组件库，仅 body 可拖拽） */
 export const LAYOUT_CATEGORIES = [
   { key: 'basic', label: '基础组件' },
   { key: 'grid', label: '宫格组件' },
   { key: 'list', label: '列表组件' },
+  { key: 'user', label: '用户组件' },
 ]
 
 /**
@@ -110,6 +117,38 @@ export const layoutComponentRegistry = {
     },
     block: markRaw(ListBlock),
     config: markRaw(ListConfig),
+  },
+  userCard: {
+    type: 'userCard',
+    label: '用户卡片',
+    category: 'user',
+    scope: COMPONENT_SCOPE.BODY,
+    description: '头像昵称、登录引导、统计入口',
+    createInstance() {
+      return {
+        id: generateId(),
+        type: 'userCard',
+        props: createDefaultUserCardProps(),
+      }
+    },
+    block: markRaw(UserCardBlock),
+    config: markRaw(UserCardConfig),
+  },
+  menuGroup: {
+    type: 'menuGroup',
+    label: '菜单组',
+    category: 'user',
+    scope: COMPONENT_SCOPE.BODY,
+    description: '分组菜单，支持需登录与退出登录',
+    createInstance() {
+      return {
+        id: generateId(),
+        type: 'menuGroup',
+        props: createDefaultMenuGroupProps(),
+      }
+    },
+    block: markRaw(MenuGroupBlock),
+    config: markRaw(MenuGroupConfig),
   },
 }
 

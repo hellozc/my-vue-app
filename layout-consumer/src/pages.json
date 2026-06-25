@@ -17,6 +17,24 @@
       }
     },
     {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationBarBackgroundColor": "#070B14",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#070B14"
+      }
+    },
+    {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationBarBackgroundColor": "#070B14",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#070B14"
+      }
+    },
+    {
       "path": "pages/webview/index",
       "style": {
         "navigationBarTitleText": "网页"

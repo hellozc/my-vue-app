@@ -34,7 +34,7 @@
 <script setup>
 import { ref } from 'vue'
 import draggable from 'vuedraggable'
-import { ArrowLeft, ArrowRight, Picture, Grid, List, Menu } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Picture, Grid, List, Menu, User } from '@element-plus/icons-vue'
 import { LAYOUT_CATEGORIES, getComponentsByCategory, createComponentInstance } from '@/layout-builder/registry'
 
 defineEmits(['add'])
@@ -60,6 +60,8 @@ function thumbIcon(type) {
     carousel: Picture,
     grid: Grid,
     list: List,
+    userCard: User,
+    menuGroup: Menu,
   }
   return map[type] || Menu
 }

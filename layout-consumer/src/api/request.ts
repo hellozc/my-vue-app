@@ -1,4 +1,5 @@
 import { appConfig } from '@/config/env'
+import { clearMemberToken, getMemberToken } from '@/utils/memberToken'
 
 interface ApiResponse<T> {
   code: number
@@ -10,10 +11,16 @@ export async function request<T>(options: {
   url: string
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   data?: UniApp.RequestOptions['data']
+  auth?: boolean
 }): Promise<T> {
-  const { url, method = 'GET', data } = options
+  const { url, method = 'GET', data, auth = true } = options
 
   const hasBody = data !== undefined && data !== null && method !== 'GET'
+  const headers: Record<string, string> = {}
+  if (hasBody) headers['Content-Type'] = 'application/json'
+
+  const token = auth ? getMemberToken() : ''
+  if (token) headers.Authorization = `Bearer ${token}`
 
   return new Promise((resolve, reject) => {
     uni.request({
@@ -21,7 +28,7 @@ export async function request<T>(options: {
       method,
       data,
       timeout: appConfig.requestTimeout,
-      header: hasBody ? { 'Content-Type': 'application/json' } : {},
+      header: headers,
       success: (res) => {
         const body = res.data as ApiResponse<T>
         if (!body || typeof body !== 'object' || !('code' in body)) {
@@ -31,6 +38,9 @@ export async function request<T>(options: {
         if (body.code === appConfig.successCode) {
           resolve(body.data)
           return
+        }
+        if (body.code === 401 && auth) {
+          clearMemberToken()
         }
         reject(new Error(body.message || '请求失败'))
       },
