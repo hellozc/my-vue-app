@@ -400,21 +400,39 @@ export async function ensureSchemaPatches({ strict = false } = {}) {
   const conn = await createDbConnection()
   try {
     await conn.query(`USE \`${config.db.database}\``)
+
+    // 1. 结构补丁优先（避免后续种子数据失败导致新表未创建）
     await ensureLinkCategoryTable(conn)
-    await seedDefaultLinkCategories(conn)
     await ensureLinkTable(conn)
-    await seedDefaultLinks(conn)
     await ensureMediaCategoryTable(conn)
-    await seedDefaultMediaCategories(conn)
     await ensureMediaTable(conn)
-    await ensureAdminSystemMenus(conn)
     await ensureLayoutTable(conn)
-    await seedDemoHomeLayout(conn)
-    await seedDemoUserLayout(conn)
     await ensureMemberTables(conn)
-    await seedDemoMember(conn)
     await ensureAuthConfigTable(conn)
-    await seedDefaultAuthConfig(conn)
+
+    // 2. 菜单与权限补全
+    await ensureAdminSystemMenus(conn)
+
+    // 3. 种子数据（单项失败不阻断其余补丁）
+    const seedTasks = [
+      ['链接分类', () => seedDefaultLinkCategories(conn)],
+      ['链接', () => seedDefaultLinks(conn)],
+      ['素材分类', () => seedDefaultMediaCategories(conn)],
+      ['demo-home 布局', () => seedDemoHomeLayout(conn)],
+      ['user 我的页布局', () => seedDemoUserLayout(conn)],
+      ['演示会员', () => seedDemoMember(conn)],
+      ['C端登录配置', () => seedDefaultAuthConfig(conn)],
+    ]
+
+    for (const [label, task] of seedTasks) {
+      try {
+        await task()
+      } catch (err) {
+        const message = `[DB] 种子「${label}」跳过: ${err.message}`
+        if (strict) throw new Error(message, { cause: err })
+        console.warn(message)
+      }
+    }
   } catch (err) {
     if (strict) throw err
     console.warn('[DB] 结构补丁执行失败:', err.message)

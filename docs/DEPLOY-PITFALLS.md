@@ -121,7 +121,10 @@ MySQL Service → **Database** 或 **Console**：
 USE railway;
 SHOW TABLES;
 -- 应包含 sys_user, sys_menu, sys_role, sys_role_menu
+-- 以及 app_member, app_member_auth, app_auth_config（C 端会员相关）
 ```
+
+若只有 `sys_*` 没有 `app_*`：多为 **结构补丁中途失败**（常见：Docker 镜像缺少 `server/seeds/demo-user.json`，`seedDemoUserLayout` 抛错后旧版补丁逻辑未执行 `ensureMemberTables`）。处理：部署含修复的后端并 **Redeploy**，或按上文方式执行 `db:init`。
 
 ---
 

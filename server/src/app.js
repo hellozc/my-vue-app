@@ -53,6 +53,7 @@ async function start() {
         console.log('[DB] 启动时自动初始化已完成')
       }
       await ensureSchemaPatches()
+      console.log('[DB] 结构补丁检查完成')
     }
   } catch (err) {
     console.error('[DB] MySQL 连接失败:', err.message || err.code || String(err))
